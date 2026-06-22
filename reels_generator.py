@@ -81,7 +81,7 @@ def _get_title(content):
 
 
 class ReelsGenerator:
-    def __init__(self, width=1080, height=1920):
+    def __init__(self, width=720, height=1280):
         self.width = width
         self.height = height
         self._init_fonts()
@@ -90,19 +90,23 @@ class ReelsGenerator:
         latin_path = _find_font(_LATIN_FONT_CANDIDATES)
         arabic_path = _find_font(_ARABIC_FONT_CANDIDATES)
 
+        scale = self.width / 1080.0
+
         if latin_path:
-            self.font_title = ImageFont.truetype(latin_path, 72)
-            self.font_body = ImageFont.truetype(latin_path, 56)
-            self.font_small = ImageFont.truetype(latin_path, 40)
-            self.font_footer = ImageFont.truetype(latin_path, 36)
+            self.font_title = ImageFont.truetype(latin_path, int(72 * scale * 1.4))
+            self.font_body = ImageFont.truetype(latin_path, int(56 * scale * 1.4))
+            self.font_small = ImageFont.truetype(latin_path, int(40 * scale * 1.4))
+            self.font_footer = ImageFont.truetype(latin_path, int(36 * scale * 1.4))
+            self.font_arabic_title = ImageFont.truetype(latin_path, int(48 * scale * 1.4))
         else:
             self.font_title = ImageFont.load_default()
             self.font_body = ImageFont.load_default()
             self.font_small = ImageFont.load_default()
             self.font_footer = ImageFont.load_default()
+            self.font_arabic_title = ImageFont.load_default()
 
         if arabic_path:
-            self.font_arabic = ImageFont.truetype(arabic_path, 90)
+            self.font_arabic = ImageFont.truetype(arabic_path, int(120 * scale * 1.4))
         else:
             self.font_arabic = None
 
@@ -117,12 +121,13 @@ class ReelsGenerator:
         return Image.composite(bot, top, grad)
 
     def _draw_frame(self, draw, accent):
-        margin = 60
-        padding = 20
+        margin = int(40 * (self.width / 1080.0))
+        padding = int(15 * (self.width / 1080.0))
+        line_width = max(2, int(3 * (self.width / 1080.0)))
         draw.rectangle(
             [(margin - padding, margin - padding), (self.width - margin + padding, self.height - margin + padding)],
             outline=accent,
-            width=3,
+            width=line_width,
         )
 
     def _render_arabic_text(self, text):
@@ -155,6 +160,36 @@ class ReelsGenerator:
                     lines.append(current)
         return lines
 
+    def _wrap_arabic_text(self, text, font, max_width):
+        if not text or not self.font_arabic:
+            return [text] if text else []
+
+        rendered = self._render_arabic_text(text)
+        if not rendered:
+            return [text] if text else []
+
+        chars = list(rendered)
+        lines = []
+        current = ""
+
+        for ch in chars:
+            test = current + ch
+            bbox = font.getbbox(test) if hasattr(font, "getbbox") else font.getsize(test)
+            if bbox[2] - bbox[0] > max_width and current:
+                lines.append(current)
+                current = ch
+            else:
+                current = test
+
+        if current:
+            lines.append(current)
+
+        return lines
+
+    def _get_line_height(self, font):
+        bbox = font.getbbox("Ay") if hasattr(font, "getbbox") else font.getsize("Ay")
+        return int((bbox[3] - bbox[1]) * 1.4)
+
     def _create_opening_frame(self, content, alpha=1.0):
         theme = content.get("theme", "motivasi")
         bg_colors = THEME_COLORS.get(theme, THEME_COLORS["motivasi"])
@@ -164,18 +199,29 @@ class ReelsGenerator:
         draw = ImageDraw.Draw(img)
         self._draw_frame(draw, accent)
 
-        text = "Tadabbur Hari Ini"
-        bbox = draw.textbbox((0, 0), text, font=self.font_title)
-        x = (self.width - (bbox[2] - bbox[0])) // 2
-        y = (self.height - (bbox[3] - bbox[1])) // 2
+        icon = "🌙"
+        icon_bbox = draw.textbbox((0, 0), icon, font=self.font_title)
+        icon_x = (self.width - (icon_bbox[2] - icon_bbox[0])) // 2
+        icon_y = self.height // 3
+        draw.text((icon_x, icon_y), icon, fill=accent, font=self.font_title)
 
-        alpha_int = int(alpha * 255)
-        draw.text((x, y), text, fill=accent, font=self.font_title)
+        title = "Tadabbur"
+        title_bbox = draw.textbbox((0, 0), title, font=self.font_title)
+        title_x = (self.width - (title_bbox[2] - title_bbox[0])) // 2
+        title_y = icon_y + self._get_line_height(self.font_title) + 30
+        draw.text((title_x, title_y), title, fill="#f8f9fa", font=self.font_title)
 
-        subtitle = "🌙 Renungan Islami"
-        bbox_sub = draw.textbbox((0, 0), subtitle, font=self.font_small)
-        x_sub = (self.width - (bbox_sub[2] - bbox_sub[0])) // 2
-        draw.text((x_sub, y + 100), subtitle, fill="#f8f9fa", font=self.font_small)
+        subtitle = "Hari Ini"
+        sub_bbox = draw.textbbox((0, 0), subtitle, font=self.font_arabic_title)
+        sub_x = (self.width - (sub_bbox[2] - sub_bbox[0])) // 2
+        sub_y = title_y + self._get_line_height(self.font_title) + 20
+        draw.text((sub_x, sub_y), subtitle, fill=accent, font=self.font_arabic_title)
+
+        footer = "📖 Renungan Islami"
+        footer_y = self.height - 200
+        footer_bbox = draw.textbbox((0, 0), footer, font=self.font_small)
+        footer_x = (self.width - (footer_bbox[2] - footer_bbox[0])) // 2
+        draw.text((footer_x, footer_y), footer, fill="#f8f9fa", font=self.font_small)
 
         return img
 
@@ -188,26 +234,35 @@ class ReelsGenerator:
         draw = ImageDraw.Draw(img)
         self._draw_frame(draw, accent)
 
-        arabic_text = content.get("arabic", "")
-        rendered = self._render_arabic_text(arabic_text)
+        title = _get_title(content)
+        title_bbox = draw.textbbox((0, 0), title, font=self.font_small)
+        title_x = (self.width - (title_bbox[2] - title_bbox[0])) // 2
+        title_y = int(80 * (self.height / 1920.0))
+        draw.text((title_x, title_y), title, fill=accent, font=self.font_small)
 
-        if rendered and self.font_arabic:
-            font_size = int(90 * scale)
+        arabic_text = content.get("arabic", "")
+        if arabic_text and self.font_arabic:
+            max_text_width = int(self.width * 0.85)
+            font_size = int(60 * (self.width / 720.0) * scale)
+            font_size = max(40, min(font_size, 100))
+
             arabic_path = _find_font(_ARABIC_FONT_CANDIDATES)
             if arabic_path:
                 font = ImageFont.truetype(arabic_path, font_size)
             else:
                 font = self.font_arabic
 
-            lines = self._wrap_text(rendered, font, self.width - 160)
-            total_height = sum(font.getbbox(l)[3] - font.getbbox(l)[1] + 20 for l in lines)
+            lines = self._wrap_arabic_text(arabic_text, font, max_text_width)
+
+            line_height = int(font_size * 1.5)
+            total_height = line_height * len(lines)
             y = (self.height - total_height) // 2
 
             for line in lines:
                 bbox = draw.textbbox((0, 0), line, font=font)
                 x = (self.width - (bbox[2] - bbox[0])) // 2
                 draw.text((x, y), line, fill="#f8f9fa", font=font)
-                y += (bbox[3] - bbox[1]) + 20
+                y += line_height
 
         return img
 
@@ -220,22 +275,31 @@ class ReelsGenerator:
         draw = ImageDraw.Draw(img)
         self._draw_frame(draw, accent)
 
-        translation = content.get("translation", "")
         title = _get_title(content)
+        title_bbox = draw.textbbox((0, 0), title, font=self.font_small)
+        title_x = (self.width - (title_bbox[2] - title_bbox[0])) // 2
+        title_y = int(100 * (self.height / 1920.0))
+        draw.text((title_x, title_y), title, fill=accent, font=self.font_small)
 
-        bbox_title = draw.textbbox((0, 0), title, font=self.font_small)
-        x_title = (self.width - (bbox_title[2] - bbox_title[0])) // 2
-        draw.text((x_title, 200), title, fill=accent, font=self.font_small)
+        label = "Artinya:"
+        label_bbox = draw.textbbox((0, 0), label, font=self.font_arabic_title)
+        label_x = (self.width - (label_bbox[2] - label_bbox[0])) // 2
+        label_y = title_y + 80
+        draw.text((label_x, label_y), label, fill=accent, font=self.font_arabic_title)
 
-        lines = self._wrap_text(f'"{translation}"', self.font_body, self.width - 160)
-        total_height = sum(self.font_body.getbbox(l)[3] - self.font_body.getbbox(l)[1] + 20 for l in lines)
-        y = (self.height - total_height) // 2
+        translation = content.get("translation", "")
+        max_text_width = int(self.width * 0.85)
+        lines = self._wrap_text(f'"{translation}"', self.font_body, max_text_width)
+
+        line_height = self._get_line_height(self.font_body)
+        total_height = line_height * len(lines)
+        y = (self.height - total_height) // 2 + 50
 
         for line in lines:
             bbox = draw.textbbox((0, 0), line, font=self.font_body)
             x = (self.width - (bbox[2] - bbox[0])) // 2
             draw.text((x, y), line, fill="#f8f9fa", font=self.font_body)
-            y += (bbox[3] - bbox[1]) + 20
+            y += line_height
 
         return img
 
@@ -249,31 +313,43 @@ class ReelsGenerator:
         self._draw_frame(draw, accent)
 
         title = _get_title(content)
-        explanation = content.get("explanation", "")[:100]
+        title_bbox = draw.textbbox((0, 0), title, font=self.font_arabic_title)
+        title_x = (self.width - (title_bbox[2] - title_bbox[0])) // 2
+        title_y = int(200 * (self.height / 1920.0))
+        draw.text((title_x, title_y), title, fill=accent, font=self.font_arabic_title)
 
-        lines_text = [
-            title,
-            "",
-            explanation + "..." if len(content.get("explanation", "")) > 100 else explanation,
-            "",
-            "Follow untuk tadabbur harian",
-            "Like & Share jika bermanfaat",
-        ]
+        explanation = content.get("explanation", "")
+        if explanation:
+            max_explanation_length = 150
+            if len(explanation) > max_explanation_length:
+                explanation = explanation[:max_explanation_length] + "..."
 
-        y = 400
-        for line in lines_text:
-            if not line:
-                y += 40
-                continue
-            bbox = draw.textbbox((0, 0), line, font=self.font_small)
-            x = (self.width - (bbox[2] - bbox[0])) // 2
-            draw.text((x, y), line, fill="#f8f9fa", font=self.font_small)
-            y += 60
+            max_text_width = int(self.width * 0.85)
+            lines = self._wrap_text(explanation, self.font_small, max_text_width)
 
-        footer = "@tadabbur.quran"
-        bbox_footer = draw.textbbox((0, 0), footer, font=self.font_footer)
-        x_footer = (self.width - (bbox_footer[2] - bbox_footer[0])) // 2
-        draw.text((x_footer, self.height - 150), footer, fill=accent, font=self.font_footer)
+            line_height = self._get_line_height(self.font_small)
+            total_height = line_height * len(lines)
+            y = title_y + 100
+
+            for line in lines:
+                bbox = draw.textbbox((0, 0), line, font=self.font_small)
+                x = (self.width - (bbox[2] - bbox[0])) // 2
+                draw.text((x, y), line, fill="#f8f9fa", font=self.font_small)
+                y += line_height
+
+        cta = "Follow untuk tadabbur harian"
+        cta_bbox = draw.textbbox((0, 0), cta, font=self.font_arabic_title)
+        cta_x = (self.width - (cta_bbox[2] - cta_bbox[0])) // 2
+        cta_y = self.height - 280
+        draw.text((cta_x, cta_y), cta, fill=accent, font=self.font_arabic_title)
+
+        footer = "Like & Share 🤲"
+        footer_bbox = draw.textbbox((0, 0), footer, font=self.font_small)
+        footer_x = (self.width - (footer_bbox[2] - footer_bbox[0])) // 2
+        footer_y = cta_y + 80
+        draw.text((footer_x, footer_y), footer, fill="#f8f9fa", font=self.font_small)
+
+        return img
 
         return img
 
