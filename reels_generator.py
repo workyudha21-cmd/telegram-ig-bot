@@ -278,10 +278,12 @@ class ReelsGenerator:
         return img
 
     def generate(self, content, duration=30, audio_type="bismillah"):
+        print(f"ReelsGenerator.generate() dipanggil dengan duration={duration}")
         if not MOVIEPY_AVAILABLE:
+            print("ERROR: MOVIEPY_AVAILABLE is False")
             raise ImportError("moviepy tidak tersedia. Install dengan: pip install moviepy")
 
-        fps = 30
+        fps = 15
         frames = []
 
         opening_duration = 3
@@ -297,30 +299,44 @@ class ReelsGenerator:
             translation_duration = max(3, int(translation_duration * ratio))
             closing_duration = max(2, int(closing_duration * ratio))
 
+        total_frames = (opening_duration + arabic_duration + translation_duration + closing_duration) * fps
+        print(f"Membuat {total_frames} frames...")
+
+        frame_count = 0
         for i in range(opening_duration * fps):
             alpha = min(1.0, i / (fps * 1))
             frame = self._create_opening_frame(content, alpha)
             frames.append(np.array(frame))
+            frame_count += 1
+        print(f"Opening frames: {frame_count}")
 
         for i in range(arabic_duration * fps):
             scale = 1.0 + (i / (arabic_duration * fps)) * 0.05
             frame = self._create_arabic_frame(content, scale)
             frames.append(np.array(frame))
+            frame_count += 1
+        print(f"Setelah Arabic: {frame_count}")
 
         for i in range(translation_duration * fps):
             alpha = min(1.0, i / (fps * 1))
             frame = self._create_translation_frame(content, alpha)
             frames.append(np.array(frame))
+            frame_count += 1
+        print(f"Setelah Translation: {frame_count}")
 
         for i in range(closing_duration * fps):
             frame = self._create_closing_frame(content)
             frames.append(np.array(frame))
+            frame_count += 1
+        print(f"Total frames: {frame_count}")
 
+        print("Membuat video dari frames...")
         video = ImageSequenceClip(frames, fps=fps)
 
         audio_path = os.path.join(AUDIO_DIR, "bismillah.mp3")
         if audio_type == "bismillah" and os.path.exists(audio_path):
             try:
+                print("Menambah audio Bismillah...")
                 audio = AudioFileClip(audio_path)
                 actual_duration = len(frames) / fps
                 if audio.duration < actual_duration:
@@ -331,12 +347,33 @@ class ReelsGenerator:
                     audio = audio.subclipped(0, actual_duration)
                 except AttributeError:
                     audio = audio.subclip(0, actual_duration)
-                video = video.with_audio(audio)
+                try:
+                    video = video.with_audio(audio)
+                except AttributeError:
+                    video = video.set_audio(audio)
+                print("Audio berhasil ditambahkan")
             except Exception as e:
                 print(f"Warning: Gagal menambah audio: {e}")
 
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         output_path = os.path.join(OUTPUT_DIR, f"reels_{int(time.time())}.mp4")
-        video.write_videofile(output_path, fps=fps, codec='libx264', audio_codec='aac', logger=None)
+        print(f"Menyimpan video ke: {output_path}")
+        video.write_videofile(
+            output_path,
+            fps=fps,
+            codec='libx264',
+            audio_codec='aac',
+            logger=None,
+            preset='ultrafast',
+            threads=2
+        )
+        print(f"Video berhasil disimpan: {output_path}")
+
+        video.close()
+        if audio_type == "bismillah" and 'audio' in locals():
+            try:
+                audio.close()
+            except Exception:
+                pass
 
         return output_path
