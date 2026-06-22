@@ -1115,4 +1115,11 @@ class TelegramBot:
         self._app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.any_message))
 
         logger.info("Bot started polling...")
-        self._app.run_polling(allowed_updates=Update.ALL_TYPES)
+        self._app.run_polling(
+            allowed_updates=Update.ALL_TYPES,
+            drop_pending_updates=True,
+            read_timeout=30,
+            write_timeout=30,
+            connect_timeout=30,
+            pool_timeout=30,
+        )
