@@ -71,6 +71,8 @@ from instagram_uploader import InstagramUploader
 from telegram_bot import TelegramBot
 from trending_content_generator import TrendingContentGenerator
 from reels_generator import ReelsGenerator
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -100,6 +102,24 @@ def _notify_admin(text):
             requests.post(url, json={"chat_id": uid, "text": text}, timeout=10)
         except requests.exceptions.RequestException as e:
             logger.warning(f"Gagal kirim notifikasi ke {uid}: {e}")
+
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b'OK')
+
+    def log_message(self, format, *args):
+        pass
+
+
+def start_health_server():
+    port = int(os.getenv('PORT', 8080))
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+    logger.info(f"Health check server berjalan di port {port}")
+    server.serve_forever()
 
 
 def _append_history(entry, max_entries=500):
@@ -273,6 +293,12 @@ def main():
         daemon=True,
     )
     cleanup_thread.start()
+
+    health_thread = threading.Thread(
+        target=start_health_server,
+        daemon=True,
+    )
+    health_thread.start()
 
     bot.run()
 
