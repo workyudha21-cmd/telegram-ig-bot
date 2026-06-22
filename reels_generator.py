@@ -283,7 +283,9 @@ class ReelsGenerator:
             print("ERROR: MOVIEPY_AVAILABLE is False")
             raise ImportError("moviepy tidak tersedia. Install dengan: pip install moviepy")
 
-        fps = 15
+        fps = 10
+        target_width = 720
+        target_height = 1280
         frames = []
 
         opening_duration = 3
@@ -300,35 +302,44 @@ class ReelsGenerator:
             closing_duration = max(2, int(closing_duration * ratio))
 
         total_frames = (opening_duration + arabic_duration + translation_duration + closing_duration) * fps
-        print(f"Membuat {total_frames} frames...")
+        print(f"Membuat {total_frames} frames @ {target_width}x{target_height}...")
 
-        frame_count = 0
-        for i in range(opening_duration * fps):
-            alpha = min(1.0, i / (fps * 1))
-            frame = self._create_opening_frame(content, alpha)
-            frames.append(np.array(frame))
-            frame_count += 1
-        print(f"Opening frames: {frame_count}")
+        original_width = self.width
+        original_height = self.height
+        self.width = target_width
+        self.height = target_height
 
-        for i in range(arabic_duration * fps):
-            scale = 1.0 + (i / (arabic_duration * fps)) * 0.05
-            frame = self._create_arabic_frame(content, scale)
-            frames.append(np.array(frame))
-            frame_count += 1
-        print(f"Setelah Arabic: {frame_count}")
+        try:
+            frame_count = 0
+            for i in range(opening_duration * fps):
+                alpha = min(1.0, i / (fps * 1))
+                frame = self._create_opening_frame(content, alpha)
+                frames.append(np.array(frame))
+                frame_count += 1
+            print(f"Opening frames: {frame_count}")
 
-        for i in range(translation_duration * fps):
-            alpha = min(1.0, i / (fps * 1))
-            frame = self._create_translation_frame(content, alpha)
-            frames.append(np.array(frame))
-            frame_count += 1
-        print(f"Setelah Translation: {frame_count}")
+            for i in range(arabic_duration * fps):
+                scale = 1.0 + (i / (arabic_duration * fps)) * 0.05
+                frame = self._create_arabic_frame(content, scale)
+                frames.append(np.array(frame))
+                frame_count += 1
+            print(f"Setelah Arabic: {frame_count}")
 
-        for i in range(closing_duration * fps):
-            frame = self._create_closing_frame(content)
-            frames.append(np.array(frame))
-            frame_count += 1
-        print(f"Total frames: {frame_count}")
+            for i in range(translation_duration * fps):
+                alpha = min(1.0, i / (fps * 1))
+                frame = self._create_translation_frame(content, alpha)
+                frames.append(np.array(frame))
+                frame_count += 1
+            print(f"Setelah Translation: {frame_count}")
+
+            for i in range(closing_duration * fps):
+                frame = self._create_closing_frame(content)
+                frames.append(np.array(frame))
+                frame_count += 1
+            print(f"Total frames: {frame_count}")
+        finally:
+            self.width = original_width
+            self.height = original_height
 
         print("Membuat video dari frames...")
         video = ImageSequenceClip(frames, fps=fps)
@@ -365,15 +376,15 @@ class ReelsGenerator:
             audio_codec='aac',
             logger=None,
             preset='ultrafast',
-            threads=2
+            threads=1
         )
         print(f"Video berhasil disimpan: {output_path}")
 
         video.close()
-        if audio_type == "bismillah" and 'audio' in locals():
-            try:
-                audio.close()
-            except Exception:
-                pass
+        try:
+            audio.close()
+        except Exception:
+            pass
+        frames.clear()
 
         return output_path
