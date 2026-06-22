@@ -69,6 +69,7 @@ THEME_COLORS = {
     "akhlak": ("#1e3d2f", "#2f5e48", "#f0e6d2"),
     "keluarga": ("#3d1e2e", "#5c2f45", "#f4c2c2"),
     "doa": ("#1f2d40", "#34495e", "#d4af37"),
+    "dzikir": ("#2d1b4e", "#4a2d7a", "#e6d5f5"),
 }
 
 
@@ -198,15 +199,6 @@ class ImageGenerator:
             lines = self._wrap_text(f'"{text}"', font, max_w)
             total_h = sum(self._line_height(line, font) for line in lines)
             if total_h <= self.height * max_height_ratio:
-                return font
-        return self.font_small
-
-    def _pick_tafsir_font(self, text, max_w):
-        for size in [38, 34, 30, 26]:
-            font = self._load_font(size)
-            lines = self._wrap_text(text, font, max_w)
-            total_h = sum(self._line_height(line, font) for line in lines)
-            if total_h <= self.height * 0.28:
                 return font
         return self.font_small
 

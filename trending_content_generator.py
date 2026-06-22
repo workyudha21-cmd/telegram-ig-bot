@@ -5,7 +5,7 @@ import random
 import re
 import requests
 
-from content_generator import ContentGenerator
+from content_generator import ContentGenerator, _get_title
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ THEME_NAMES = {
     "akhlak": "akhlak",
     "keluarga": "keluarga",
     "doa": "doa",
+    "dzikir": "dzikir",
 }
 
 
@@ -135,12 +136,14 @@ class TrendingContentGenerator:
             theme = "motivasi"
 
         content = self.content_gen.get_random(theme=theme)
+        self.content_gen.mark_generated(content)
 
+        title = _get_title(content)
         news_caption = (
             f"📰 Isu terkini: {news['title']}\n\n"
             f"{content['arabic']}\n\n"
             f"\"{content['translation']}\"\n\n"
-            f"— QS. {content['surah']}: {content['ayat']}\n\n"
+            f"— {title}\n\n"
             f"💡 Refleksi: {reflection}\n\n"
             f"{hashtag} #quran #islam #quote"
         )

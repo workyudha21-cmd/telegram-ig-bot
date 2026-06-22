@@ -8,7 +8,9 @@ import signal
 import sys
 import threading
 import time
+from datetime import datetime
 
+import pytz
 import requests
 import schedule
 
@@ -17,6 +19,8 @@ LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 LOG_FILE = os.path.join(LOG_DIR, "bot.log")
 SCHEDULE_PATH = os.path.join(os.path.dirname(__file__), "data", "schedule.json")
 CLEANUP_MAX_AGE = 7 * 24 * 3600  # 7 hari
+
+_shutdown_event = threading.Event()
 
 
 def load_schedule():
@@ -35,6 +39,19 @@ def save_schedule(times):
     with open(SCHEDULE_PATH, "w") as f:
         json.dump({"times": times}, f, indent=2)
 
+
+def convert_local_to_utc(local_time_str, timezone_str):
+    try:
+        tz = pytz.timezone(timezone_str)
+        now = datetime.now()
+        hour, minute = map(int, local_time_str.split(":"))
+        local_dt = tz.localize(datetime(now.year, now.month, now.day, hour, minute))
+        utc_dt = local_dt.astimezone(pytz.utc)
+        return utc_dt.strftime("%H:%M")
+    except (ValueError, pytz.exceptions.UnknownTimeZoneError) as e:
+        logger.warning(f"Gagal konversi timezone untuk {local_time_str}: {e}")
+        return local_time_str
+
 from config import (
     TELEGRAM_BOT_TOKEN,
     INSTAGRAM_USERNAME,
@@ -45,6 +62,8 @@ from config import (
     ALLOWED_USER_IDS,
     AUTO_POST_SCHEDULE,
     CONTENT_CALENDAR,
+    TIMEZONE,
+    CAPTION_STYLE,
 )
 from content_generator import ContentGenerator
 from image_generator import ImageGenerator
@@ -113,17 +132,18 @@ def auto_post(content_gen, image_gen, ig_uploader, calendar_map=None):
     for attempt in range(1, max_retries + 1):
         try:
             content = content_gen.get_random(theme=theme)
-            content_gen.mark_generated(content)
             path = image_gen.generate(content, f"auto_{int(time.time())}.png")
             ok, msg = ig_uploader.upload_photo(path, content["caption"])
             logger.info(f"Auto-post: {msg}")
             if ok:
+                content_gen.mark_generated(content)
                 try:
                     _append_history({
                         "surah": content["surah"],
                         "ayat": content["ayat"],
                         "theme": content["theme"],
                         "type": content.get("type", "quran"),
+                        "post_type": "auto",
                         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                     })
                 except (OSError, json.JSONDecodeError) as e:
@@ -146,7 +166,7 @@ def auto_post(content_gen, image_gen, ig_uploader, calendar_map=None):
 
 
 def cleanup_output(interval=3600):
-    while True:
+    while not _shutdown_event.is_set():
         now = time.time()
         removed = 0
         if os.path.isdir(OUTPUT_DIR):
@@ -165,12 +185,12 @@ def cleanup_output(interval=3600):
                         removed += 1
         if removed:
             logger.info(f"Cleanup: {removed} file lama dihapus")
-        time.sleep(interval)
+        _shutdown_event.wait(interval)
 
 
 def run_scheduler(content_gen, image_gen, ig_uploader, calendar_map=None):
     last_schedule_hash = None
-    while True:
+    while not _shutdown_event.is_set():
         current_times = load_schedule()
         current_hash = tuple(sorted(current_times))
         if current_hash != last_schedule_hash:
@@ -178,24 +198,38 @@ def run_scheduler(content_gen, image_gen, ig_uploader, calendar_map=None):
             for t in current_times:
                 t = t.strip()
                 if t:
-                    schedule.every().day.at(t).do(auto_post, content_gen, image_gen, ig_uploader, calendar_map)
-                    logger.info(f"Auto-post dijadwalkan setiap {t}")
+                    utc_time = convert_local_to_utc(t, TIMEZONE)
+                    schedule.every().day.at(utc_time).do(auto_post, content_gen, image_gen, ig_uploader, calendar_map)
+                    logger.info(f"Auto-post dijadwalkan setiap {t} ({TIMEZONE}) = {utc_time} UTC")
             last_schedule_hash = current_hash
         schedule.run_pending()
-        time.sleep(30)
+        _shutdown_event.wait(30)
+
+
+def validate_config():
+    errors = []
+    if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN":
+        errors.append("TELEGRAM_BOT_TOKEN belum diatur")
+    if not INSTAGRAM_USERNAME or INSTAGRAM_USERNAME == "YOUR_INSTAGRAM_USERNAME":
+        errors.append("INSTAGRAM_USERNAME belum diatur")
+    if not INSTAGRAM_PASSWORD or INSTAGRAM_PASSWORD == "YOUR_INSTAGRAM_PASSWORD":
+        errors.append("INSTAGRAM_PASSWORD belum diatur")
+    if not ALLOWED_USER_IDS:
+        errors.append("ALLOWED_USER_IDS kosong - bot tidak bisa menerima perintah")
+    return errors
 
 
 def main():
     logger.info("Memulai Telegram IG Bot...")
 
-    if TELEGRAM_BOT_TOKEN in (None, "YOUR_TELEGRAM_BOT_TOKEN"):
-        logger.error(
-            "TELEGRAM_BOT_TOKEN belum diatur! "
-            "Set environment variable atau edit config.py"
-        )
+    errors = validate_config()
+    if errors:
+        for err in errors:
+            logger.error(f"Config error: {err}")
+        logger.error("Perbaiki konfigurasi di file .env lalu jalankan ulang.")
         return
 
-    content_gen = ContentGenerator()
+    content_gen = ContentGenerator(caption_style=CAPTION_STYLE)
     image_gen = ImageGenerator(instagram_username=INSTAGRAM_USERNAME)
     ig_uploader = InstagramUploader(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD, INSTAGRAM_PROXY)
     atexit.register(ig_uploader.logout)
@@ -207,6 +241,7 @@ def main():
 
     def shutdown(signum, frame):
         logger.info("Menerima sinyal shutdown...")
+        _shutdown_event.set()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, shutdown)

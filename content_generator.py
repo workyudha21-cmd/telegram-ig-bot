@@ -4,17 +4,20 @@ import json
 import os
 import random
 import threading
+from typing import Dict, List, Optional, Set, Tuple, Any
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 DEFAULT_DATA_PATHS = [
     os.path.join(DATA_DIR, "quran_content.json"),
     os.path.join(DATA_DIR, "hadith_content.json"),
+    os.path.join(DATA_DIR, "dua_content.json"),
+    os.path.join(DATA_DIR, "dzikir_content.json"),
 ]
 GENERATED_PATH = os.path.join(DATA_DIR, "generated.json")
 GENERATED_MAX_ENTRIES = 2000
 
 
-def _key(verse):
+def _key(verse: Dict[str, Any]) -> Tuple[str, ...]:
     t = verse.get("type", "quran")
     if t == "hadith":
         return (t, str(verse.get("book", "")), str(verse.get("hadith_number", "")))
@@ -65,7 +68,7 @@ _HASHTAG_BRANDED = "#tadabbur #islam #muslim #indonesia"
 _HASHTAG_ENGAGEMENT = "#share #save #komen"
 
 
-def _get_title(verse):
+def _get_title(verse: Dict[str, Any]) -> str:
     t = verse.get("type", "quran")
     if t == "hadith":
         book = verse.get("book", "")
@@ -76,7 +79,7 @@ def _get_title(verse):
     return f"QS. {surah} : {ayat}"
 
 
-def _build_hashtags(theme):
+def _build_hashtags(theme: str) -> str:
     base = random.choice(_HASHTAG_SETS)
     themed = f"#{theme}"
     if random.random() < 0.4:
@@ -84,6 +87,61 @@ def _build_hashtags(theme):
     else:
         engagement = ""
     return f"{themed} {base} {_HASHTAG_BRANDED} {engagement}".strip()
+
+
+def _caption_formal(content: Dict[str, Any]) -> str:
+    arabic = content["arabic"]
+    translation = content["translation"]
+    title = _get_title(content)
+    explanation = content.get("explanation") or content.get("tafsir", "")
+    theme = content.get("theme", "islam")
+    hashtags = _build_hashtags(theme)
+
+    return (
+        f"📖 {title}\n\n"
+        f"{arabic}\n\n"
+        f"Artinya: \"{translation}\"\n\n"
+        f"Tafsir:\n{explanation}\n\n"
+        f"Semoga kita dapat mengamalkan pesan yang terkandung di dalamnya.\n\n"
+        f"{hashtags}"
+    )
+
+
+def _caption_casual(content: Dict[str, Any]) -> str:
+    arabic = content["arabic"]
+    translation = content["translation"]
+    title = _get_title(content)
+    theme = content.get("theme", "islam")
+    hashtags = _build_hashtags(theme)
+
+    return (
+        f"✨ {title}\n\n"
+        f"{arabic}\n\n"
+        f"\"{translation}\"\n\n"
+        f"Keren banget kan? Yuk share ke teman-teman yang butuh motivasi! 🤲\n\n"
+        f"Save postingan ini buat dibaca lagi nanti ya! 💾\n\n"
+        f"{hashtags}"
+    )
+
+
+def _caption_storytelling(content):
+    arabic = content["arabic"]
+    translation = content["translation"]
+    title = _get_title(content)
+    explanation = content.get("explanation") or content.get("tafsir", "")
+    theme = content.get("theme", "islam")
+    hashtags = _build_hashtags(theme)
+
+    return (
+        f"🌙 Pagi ini, saat kita memulai hari...\n\n"
+        f"Ada satu pesan yang ingin aku bagikan:\n\n"
+        f"{arabic}\n\n"
+        f"\"{translation}\"\n\n"
+        f"— {title}\n\n"
+        f"Renungan:\n{explanation}\n\n"
+        f"Semoga pesan ini bisa menjadi pengingat bagi kita semua. 🤍\n\n"
+        f"{hashtags}"
+    )
 
 
 def _random_caption(content):
@@ -110,9 +168,18 @@ def _random_caption(content):
     )
 
 
+CAPTION_STYLES = {
+    "random": _random_caption,
+    "formal": _caption_formal,
+    "casual": _caption_casual,
+    "storytelling": _caption_storytelling,
+}
+
+
 class ContentGenerator:
-    def __init__(self, data_paths=None):
+    def __init__(self, data_paths=None, caption_style="random"):
         self._lock = threading.Lock()
+        self.caption_style = caption_style
         paths = data_paths or DEFAULT_DATA_PATHS
         self.verses = []
         for path in paths:
@@ -164,6 +231,15 @@ class ContentGenerator:
         themes = set(v["theme"] for v in self.verses)
         return sorted(themes)
 
+    def list_caption_styles(self):
+        return list(CAPTION_STYLES.keys())
+
+    def set_caption_style(self, style):
+        if style in CAPTION_STYLES:
+            self.caption_style = style
+            return True
+        return False
+
     def search(self, query, limit=5):
         query_lower = query.lower()
         results = []
@@ -171,7 +247,10 @@ class ContentGenerator:
             translation = (v.get("translation") or "").lower()
             explanation = (v.get("explanation") or v.get("tafsir") or "").lower()
             surah = (v.get("surah") or "").lower()
-            if query_lower in translation or query_lower in explanation or query_lower in surah:
+            book = (v.get("book") or "").lower()
+            narrator = (v.get("narrator") or "").lower()
+            if (query_lower in translation or query_lower in explanation or
+                    query_lower in surah or query_lower in book or query_lower in narrator):
                 results.append(v)
                 if len(results) >= limit:
                     break
@@ -203,7 +282,8 @@ class ContentGenerator:
             return self._format(verse)
 
     def _format(self, verse):
-        caption = _random_caption(verse)
+        caption_fn = CAPTION_STYLES.get(self.caption_style, _random_caption)
+        caption = caption_fn(verse)
 
         result = {
             "caption": caption,

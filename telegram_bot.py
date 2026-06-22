@@ -33,8 +33,11 @@ BANTUAN_TEXT = (
     "/reset_generated - Reset konten yang sudah diposting\n"
     "/history - Lihat riwayat post terakhir\n"
     "/stats - Statistik bot\n"
+    "/analytics - Analytics detail posting\n"
     "/jadwal - Info jadwal posting otomatis\n"
     "/themes - Daftar tema konten\n"
+    "/timezone - Info timezone yang digunakan\n"
+    "/caption_style - Pilih gaya caption (random/formal/casual/storytelling)\n"
     "/menu - Menu utama\n"
     "/bantuan - Pesan ini"
 )
@@ -50,6 +53,14 @@ THEME_NAMES = {
     "akhlak": "Akhlak",
     "keluarga": "Keluarga",
     "doa": "Doa",
+    "dzikir": "Dzikir",
+}
+
+LAYOUT_NAMES = {
+    "random": "🎲 Random",
+    "classic": "🎨 Classic",
+    "arabic_hero": "📖 Arabic Hero",
+    "minimal": "✨ Minimal",
 }
 
 
@@ -94,6 +105,13 @@ def _theme_keyboard():
     ])
 
 
+def _layout_keyboard():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(name, callback_data=f"layout_{key}")]
+        for key, name in LAYOUT_NAMES.items()
+    ])
+
+
 class TelegramBot:
     def __init__(self, token, content_gen, image_gen, ig_uploader, allowed_user_ids=None, trending_content_gen=None):
         self.token = token
@@ -109,18 +127,25 @@ class TelegramBot:
             return True
         return user_id in self.allowed_user_ids
 
-    def _generate(self, context, theme=None, trending=False, suffix="post.png"):
+    def _generate(self, context, theme=None, trending=False, suffix="post.png", layout=None):
         if trending:
             content = self.trending_content_gen.generate()
         elif theme:
             content = self.content_gen.get_random(theme=theme)
         else:
             content = self.content_gen.get_random()
-        self.content_gen.mark_generated(content)
-        path = self.image_gen.generate(content, _unique_filename(suffix))
+        layout_idx = self._get_layout_index(layout)
+        path = self.image_gen.generate(content, _unique_filename(suffix), layout=layout_idx)
         context.user_data["preview_content"] = content
         context.user_data["preview_path"] = path
+        context.user_data["selected_layout"] = layout
         return content, path
+
+    def _get_layout_index(self, layout_name):
+        if layout_name is None or layout_name == "random":
+            return None
+        layout_map = {"classic": 0, "arabic_hero": 1, "minimal": 2}
+        return layout_map.get(layout_name)
 
     def _upload_with_retry(self, upload_fn, max_retries=3):
         last_error = "Unknown error"
@@ -177,6 +202,62 @@ class TelegramBot:
             )
         return "\n".join(lines)
 
+    def _format_analytics_text(self):
+        if not os.path.exists(HISTORY_PATH):
+            return "📊 Belum ada data analytics."
+        with open(HISTORY_PATH, "r") as f:
+            data = json.load(f)
+        if not data:
+            return "📊 Belum ada data analytics."
+
+        total_posts = len(data)
+        by_theme = {}
+        by_hour = {}
+        by_day = {}
+        by_type = {}
+
+        for item in data:
+            theme = item.get("theme", "?")
+            by_theme[theme] = by_theme.get(theme, 0) + 1
+
+            timestamp = item.get("timestamp", "")
+            if timestamp:
+                try:
+                    from datetime import datetime
+                    dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+                    hour = dt.hour
+                    by_hour[hour] = by_hour.get(hour, 0) + 1
+                    day = dt.strftime("%Y-%m-%d")
+                    by_day[day] = by_day.get(day, 0) + 1
+                except ValueError:
+                    pass
+
+            content_type = item.get("type", "quran")
+            by_type[content_type] = by_type.get(content_type, 0) + 1
+
+        lines = ["📊 *Analytics Detail:*\n"]
+        lines.append(f"*Total Post:* {total_posts}")
+
+        if by_day:
+            avg_per_day = total_posts / len(by_day)
+            lines.append(f"*Rata-rata per Hari:* {avg_per_day:.1f}")
+
+        lines.append("\n*Top 5 Tema:*")
+        sorted_themes = sorted(by_theme.items(), key=lambda x: x[1], reverse=True)[:5]
+        for theme, count in sorted_themes:
+            lines.append(f"• {theme}: {count} post")
+
+        lines.append("\n*Jam Posting Terbaik:*")
+        sorted_hours = sorted(by_hour.items(), key=lambda x: x[1], reverse=True)[:3]
+        for hour, count in sorted_hours:
+            lines.append(f"• {hour:02d}:00 - {count} post")
+
+        lines.append("\n*Per Sumber Konten:*")
+        for type_name, count in by_type.items():
+            lines.append(f"• {type_name}: {count}")
+
+        return "\n".join(lines)
+
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self._is_allowed(update.effective_user.id):
             await update.message.reply_text("Maaf, kamu tidak memiliki akses.")
@@ -209,7 +290,8 @@ class TelegramBot:
             return
         msg = await update.message.reply_text("⏳ Membuat konten...")
         try:
-            content, path = self._generate(context)
+            layout = context.user_data.get("selected_layout")
+            content, path = self._generate(context, layout=layout)
             with open(path, "rb") as f:
                 await update.message.reply_photo(f, caption=content["caption"])
             ok, result = self._upload_with_retry(
@@ -217,6 +299,7 @@ class TelegramBot:
             )
             status = "✅ " + result if ok else "❌ " + result
             if ok:
+                self.content_gen.mark_generated(content)
                 context.user_data["story_content"] = content
                 await msg.edit_text(status, reply_markup=_story_keyboard())
             else:
@@ -242,16 +325,30 @@ class TelegramBot:
                 lambda: self.ig_uploader.upload_photo(path, content["caption"])
             )
             status = "✅ " + result if ok else "❌ " + result
+            if ok:
+                self.content_gen.mark_generated(content)
             await msg.edit_text(status)
         except (OSError, ValueError) as e:
             await msg.edit_text(f"❌ Error: {str(e)}")
+
+    async def layout_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        layout = query.data.replace("layout_", "")
+        context.user_data["selected_layout"] = layout
+        layout_name = LAYOUT_NAMES.get(layout, layout)
+        await query.edit_message_text(
+            f"✅ Layout dipilih: {layout_name}\n\nPilih aksi:",
+            reply_markup=_main_menu_keyboard()
+        )
 
     async def preview(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self._is_allowed(update.effective_user.id):
             return
         msg = await update.message.reply_text("⏳ Membuat preview...")
         try:
-            content, path = self._generate(context, suffix="preview.png")
+            layout = context.user_data.get("selected_layout")
+            content, path = self._generate(context, suffix="preview.png", layout=layout)
             with open(path, "rb") as f:
                 await update.message.reply_photo(
                     f, caption=content["caption"], reply_markup=_confirm_keyboard()
@@ -277,6 +374,8 @@ class TelegramBot:
             if not path:
                 path = self.image_gen.generate(content, "upload.png")
             ok, result = self.ig_uploader.upload_photo(path, content["caption"])
+            if ok:
+                self.content_gen.mark_generated(content)
             status = "✅ " + result if ok else "❌ " + result
             await msg.edit_text(status)
         elif query.data == "retry_preview":
@@ -346,6 +445,107 @@ class TelegramBot:
         if not self._is_allowed(update.effective_user.id):
             return
         await update.message.reply_text(BANTUAN_TEXT)
+
+    async def timezone(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not self._is_allowed(update.effective_user.id):
+            return
+        from config import TIMEZONE
+        await update.message.reply_text(
+            f"🕐 Timezone yang digunakan: {TIMEZONE}\n\n"
+            f"Jadwal posting akan dikonversi dari {TIMEZONE} ke UTC.\n"
+            f"Untuk mengubah, edit TIMEZONE di file .env\n\n"
+            f"Contoh timezone:\n"
+            f"• Asia/Jakarta (WIB)\n"
+            f"• Asia/Makassar (WITA)\n"
+            f"• Asia/Jayapura (WIT)"
+        )
+
+    async def caption_style(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not self._is_allowed(update.effective_user.id):
+            return
+        style = " ".join(context.args) if context.args else ""
+        if not style:
+            styles = self.content_gen.list_caption_styles()
+            current = self.content_gen.caption_style
+            styles_text = "\n".join(f"• {s}" for s in styles)
+            await update.message.reply_text(
+                f"🎨 Gaya caption saat ini: *{current}*\n\n"
+                f"Pilihan gaya caption:\n{styles_text}\n\n"
+                f"Gunakan: /caption_style <nama_gaya>\n"
+                f"Contoh: /caption_style formal"
+            )
+            return
+        if self.content_gen.set_caption_style(style):
+            await update.message.reply_text(f"✅ Gaya caption berhasil diubah ke: *{style}*")
+        else:
+            await update.message.reply_text(f"❌ Gaya caption tidak ditemukan: {style}")
+
+    async def backup(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not self._is_allowed(update.effective_user.id):
+            return
+        import zipfile
+        import io
+
+        backup_files = [
+            ("history.json", HISTORY_PATH),
+            ("schedule.json", SCHEDULE_PATH),
+            ("generated.json", os.path.join(os.path.dirname(__file__), "data", "generated.json")),
+        ]
+
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            for name, path in backup_files:
+                if os.path.exists(path):
+                    zf.write(path, name)
+
+        zip_buffer.seek(0)
+        await update.message.reply_document(
+            document=zip_buffer,
+            filename=f"backup_{int(time.time())}.zip",
+            caption="📦 Backup data bot"
+        )
+
+    async def restore(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not self._is_allowed(update.effective_user.id):
+            return
+        if not update.message.document:
+            await update.message.reply_text(
+                "📎 Kirim file backup (.zip) sebagai dokumen.\n"
+                "Contoh: Reply pesan ini dengan mengirim file backup."
+            )
+            return
+
+        import zipfile
+        import io
+
+        try:
+            file = await update.message.document.get_file()
+            file_bytes = await file.download_as_bytearray()
+            zip_buffer = io.BytesIO(file_bytes)
+
+            restored = []
+            with zipfile.ZipFile(zip_buffer, "r") as zf:
+                data_dir = os.path.join(os.path.dirname(__file__), "data")
+                os.makedirs(data_dir, exist_ok=True)
+
+                for name in zf.namelist():
+                    if name in ["history.json", "schedule.json", "generated.json"]:
+                        target = os.path.join(data_dir, name)
+                        with open(target, "wb") as f:
+                            f.write(zf.read(name))
+                        restored.append(name)
+
+            if restored:
+                await update.message.reply_text(
+                    f"✅ Restore berhasil!\n\nFile yang dipulihkan:\n" +
+                    "\n".join(f"• {f}" for f in restored) +
+                    "\n\nRestart bot untuk menggunakan data baru."
+                )
+            else:
+                await update.message.reply_text("❌ Tidak ada file yang bisa dipulihkan.")
+
+        except (zipfile.BadZipFile, OSError) as e:
+            await update.message.reply_text(f"❌ Gagal restore: {e}")
 
     async def search(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self._is_allowed(update.effective_user.id):
@@ -530,6 +730,15 @@ class TelegramBot:
         except (json.JSONDecodeError, OSError) as e:
             await update.message.reply_text(f"❌ Gagal baca statistik: {e}")
 
+    async def analytics(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not self._is_allowed(update.effective_user.id):
+            return
+        try:
+            text = self._format_analytics_text()
+            await update.message.reply_text(text, parse_mode="Markdown")
+        except (json.JSONDecodeError, OSError) as e:
+            await update.message.reply_text(f"❌ Gagal baca analytics: {e}")
+
     async def menu_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
@@ -544,6 +753,8 @@ class TelegramBot:
                     await query.message.reply_photo(f, caption=content["caption"])
                 ok, result = self.ig_uploader.upload_photo(path, content["caption"])
                 status = "✅ " + result if ok else "❌ " + result
+                if ok:
+                    self.content_gen.mark_generated(content)
                 await msg.edit_text(status)
             except Exception as e:
                 await msg.edit_text(f"❌ Error: {str(e)}")
@@ -617,6 +828,8 @@ class TelegramBot:
                     await query.message.reply_photo(f, caption="Preview story")
                 ok, result = self.ig_uploader.upload_story(story_path)
                 status = "📖 " + result if ok else "❌ " + result
+                if ok:
+                    self.content_gen.mark_generated(content)
                 await msg.edit_text(status)
             except Exception as e:
                 await msg.edit_text(f"❌ Error: {str(e)}")
@@ -684,14 +897,18 @@ class TelegramBot:
         self._app.add_handler(CommandHandler("carousel", self.carousel))
         self._app.add_handler(CommandHandler("history", self.history))
         self._app.add_handler(CommandHandler("stats", self.stats))
+        self._app.add_handler(CommandHandler("analytics", self.analytics))
         self._app.add_handler(CommandHandler("jadwal", self.jadwal))
         self._app.add_handler(CommandHandler("themes", self.themes))
         self._app.add_handler(CommandHandler("bantuan", self.bantuan))
         self._app.add_handler(CommandHandler("search", self.search))
         self._app.add_handler(CommandHandler("reset_generated", self.reset_generated))
         self._app.add_handler(CommandHandler("set_schedule", self.set_schedule))
+        self._app.add_handler(CommandHandler("timezone", self.timezone))
+        self._app.add_handler(CommandHandler("caption_style", self.caption_style))
 
         self._app.add_handler(CallbackQueryHandler(self.theme_callback, pattern="^theme_"))
+        self._app.add_handler(CallbackQueryHandler(self.layout_callback, pattern="^layout_"))
         self._app.add_handler(CallbackQueryHandler(self.preview_callback, pattern="^(confirm_post|retry_preview)$"))
         self._app.add_handler(CallbackQueryHandler(self.story_callback, pattern="^(post_story|story_done)$"))
         self._app.add_handler(CallbackQueryHandler(self.carousel_callback, pattern="^(carousel_upload|carousel_cancel)$"))
