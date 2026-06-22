@@ -23,6 +23,8 @@ AUDIO_DIR = os.path.join(os.path.dirname(__file__), "audio")
 
 TARGET_WIDTH = 720
 TARGET_HEIGHT = 1280
+DEFAULT_FPS = 12
+DEFAULT_DURATION = 15
 
 
 def _resize_image_to_vertical(image_path, target_width=TARGET_WIDTH, target_height=TARGET_HEIGHT):
@@ -51,41 +53,12 @@ def _resize_image_to_vertical(image_path, target_width=TARGET_WIDTH, target_heig
     return img_cropped
 
 
-def _apply_ken_burns(img, duration, fps, zoom_factor=1.15):
-    import numpy as np
-    from PIL import Image
-
-    total_frames = int(duration * fps)
-    frames = []
-
-    base_width, base_height = img.size
-
-    for i in range(total_frames):
-        progress = i / max(1, total_frames - 1)
-        scale = 1.0 + (zoom_factor - 1.0) * progress
-
-        new_width = int(base_width * scale)
-        new_height = int(base_height * scale)
-
-        img_scaled = img.resize((new_width, new_height), Image.LANCZOS)
-
-        left = (new_width - base_width) // 2
-        top = (new_height - base_height) // 2
-        right = left + base_width
-        bottom = top + base_height
-        img_frame = img_scaled.crop((left, top, right, bottom))
-
-        frames.append(img_frame)
-
-    return frames
-
-
 class ReelsGenerator:
     def __init__(self, width=TARGET_WIDTH, height=TARGET_HEIGHT):
         self.width = width
         self.height = height
 
-    def generate_from_image(self, image_path, duration=15, audio_type="bismillah", caption=""):
+    def generate_from_image(self, image_path, duration=DEFAULT_DURATION, audio_type="bismillah", caption=""):
         if not MOVIEPY_AVAILABLE:
             raise ImportError("moviepy tidak tersedia. Install dengan: pip install moviepy")
 
@@ -98,17 +71,14 @@ class ReelsGenerator:
         img = _resize_image_to_vertical(image_path, self.width, self.height)
         print(f"Image resized to: {img.size}")
 
-        fps = 24
-        frames = _apply_ken_burns(img, duration, fps, zoom_factor=1.12)
-        print(f"Generated {len(frames)} frames with Ken Burns effect")
-
         import numpy as np
-        frame_arrays = [np.array(f) for f in frames]
+        img_array = np.array(img)
+        print(f"Image array shape: {img_array.shape}")
 
-        print("Creating video clip...")
-        video = ImageClip(frame_arrays[0], duration=duration)
-        if len(frame_arrays) > 1:
-            video = ImageClip(frame_arrays, duration=duration)
+        fps = DEFAULT_FPS
+        print(f"Creating static video clip (fps={fps}, duration={duration}s)...")
+
+        video = ImageClip(img_array, duration=duration)
 
         audio_path = os.path.join(AUDIO_DIR, "bismillah.mp3")
         if audio_type == "bismillah" and os.path.exists(audio_path):
@@ -155,11 +125,14 @@ class ReelsGenerator:
             audio.close()
         except Exception:
             pass
+        del img_array
+        import gc
+        gc.collect()
 
         print(f"Video saved: {output_path}")
         return output_path
 
-    def generate(self, content, duration=30, audio_type="bismillah"):
+    def generate(self, content, duration=DEFAULT_DURATION, audio_type="bismillah"):
         if not MOVIEPY_AVAILABLE:
             raise ImportError("moviepy tidak tersedia. Install dengan: pip install moviepy")
 
@@ -176,7 +149,7 @@ class ReelsGenerator:
         image_path = image_gen.generate(content, image_filename)
         print(f"Post image generated: {image_path}")
 
-        reels_duration = min(15, duration)
+        reels_duration = min(DEFAULT_DURATION, duration)
         print(f"Step 2: Converting to Reels video ({reels_duration}s)...")
 
         try:
@@ -194,3 +167,5 @@ class ReelsGenerator:
                     print(f"Cleaned up source image: {image_path}")
             except Exception as e:
                 print(f"Warning: Failed to clean up image: {e}")
+            import gc
+            gc.collect()
