@@ -141,6 +141,21 @@ class InstagramUploader:
         except (ClientError, OSError) as e:
             return False, f"Album gagal: {str(e)}"
 
+    def upload_reel(self, video_path, caption):
+        if not self.logged_in:
+            ok, msg = self.login()
+            if not ok:
+                return False, msg
+        try:
+            result = self.client.clip_upload(video_path, caption)
+            media_id = str(getattr(result, 'id', '0'))
+            if media_id in ('0', 'None', ''):
+                return False, "Reels dilaporkan sukses tapi tidak ditemukan."
+            time.sleep(3)
+            return True, f"Reels berhasil! ID: {media_id}"
+        except (ClientError, OSError) as e:
+            return False, f"Reels gagal: {str(e)}"
+
     def logout(self):
         try:
             self.client.logout()

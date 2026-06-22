@@ -66,18 +66,31 @@ LAYOUT_NAMES = {
 
 def _main_menu_keyboard():
     return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📝 Buat Konten", callback_data="menu_create")],
         [InlineKeyboardButton("🔥 Post Berdasarkan Trending", callback_data="menu_trending")],
-        [InlineKeyboardButton("🎲 Post Random ke IG", callback_data="menu_post")],
-        [InlineKeyboardButton("🎨 Post by Tema", callback_data="menu_post_theme")],
-        [InlineKeyboardButton("👁 Preview Konten", callback_data="menu_preview")],
-        [InlineKeyboardButton("📜 Carousel (3 Slide)", callback_data="menu_carousel")],
-        [InlineKeyboardButton("📖 Post ke Story", callback_data="menu_story")],
         [InlineKeyboardButton("📊 Statistik", callback_data="menu_stats")],
         [InlineKeyboardButton("📜 Riwayat Post", callback_data="menu_history")],
         [InlineKeyboardButton("📅 Jadwal Otomatis", callback_data="menu_jadwal")],
         [InlineKeyboardButton("📚 Daftar Tema", callback_data="menu_themes")],
         [InlineKeyboardButton("❓ Bantuan", callback_data="menu_bantuan")],
     ])
+
+
+def _create_content_keyboard():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📸 Post (Gambar)", callback_data="create_post")],
+        [InlineKeyboardButton("🎬 Reels (Video)", callback_data="create_reels")],
+        [InlineKeyboardButton("📖 Story", callback_data="create_story")],
+        [InlineKeyboardButton("🎠 Carousel", callback_data="create_carousel")],
+        [InlineKeyboardButton("🔙 Kembali", callback_data="menu_main")],
+    ])
+
+
+def _theme_keyboard(back_callback="menu_create"):
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(name, callback_data=f"content_theme_{key}")]
+        for key, name in THEME_NAMES.items()
+    ] + [[InlineKeyboardButton("🔙 Kembali", callback_data=back_callback)]])
 
 
 def _confirm_keyboard():
@@ -113,12 +126,13 @@ def _layout_keyboard():
 
 
 class TelegramBot:
-    def __init__(self, token, content_gen, image_gen, ig_uploader, allowed_user_ids=None, trending_content_gen=None):
+    def __init__(self, token, content_gen, image_gen, ig_uploader, allowed_user_ids=None, trending_content_gen=None, reels_gen=None):
         self.token = token
         self.content_gen = content_gen
         self.image_gen = image_gen
         self.ig_uploader = ig_uploader
         self.trending_content_gen = trending_content_gen
+        self.reels_gen = reels_gen
         self.allowed_user_ids = allowed_user_ids or []
         self._app = None
 
@@ -884,6 +898,194 @@ class TelegramBot:
                 reply_markup=_main_menu_keyboard(),
             )
 
+        elif query.data == "menu_create":
+            await query.edit_message_text(
+                "📝 Pilih jenis konten yang ingin dibuat:",
+                reply_markup=_create_content_keyboard(),
+            )
+
+        elif query.data == "menu_main":
+            await query.edit_message_text(
+                "📋 Menu utama:\n\nPilih aksi yang ingin dilakukan:",
+                reply_markup=_main_menu_keyboard(),
+            )
+
+    async def create_content_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        if not self._is_allowed(update.effective_user.id):
+            return
+
+        if query.data == "create_post":
+            context.user_data["content_type"] = "post"
+            await query.edit_message_text(
+                "📸 Pilih tema untuk Post:",
+                reply_markup=_theme_keyboard("menu_create"),
+            )
+
+        elif query.data == "create_reels":
+            context.user_data["content_type"] = "reels"
+            await query.edit_message_text(
+                "🎬 Pilih tema untuk Reels:",
+                reply_markup=_theme_keyboard("menu_create"),
+            )
+
+        elif query.data == "create_story":
+            context.user_data["content_type"] = "story"
+            await query.edit_message_text(
+                "📖 Pilih tema untuk Story:",
+                reply_markup=_theme_keyboard("menu_create"),
+            )
+
+        elif query.data == "create_carousel":
+            context.user_data["content_type"] = "carousel"
+            await query.edit_message_text(
+                "🎠 Pilih tema untuk Carousel:",
+                reply_markup=_theme_keyboard("menu_create"),
+            )
+
+    async def content_theme_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        if not self._is_allowed(update.effective_user.id):
+            return
+
+        theme = query.data.replace("content_theme_", "")
+        content_type = context.user_data.get("content_type", "post")
+        theme_name = THEME_NAMES.get(theme, theme)
+
+        await query.edit_message_text(f"⏳ Membuat {content_type} tema {theme_name}...")
+
+        try:
+            content = self.content_gen.get_random(theme=theme)
+            self.content_gen.mark_generated(content)
+            context.user_data["preview_content"] = content
+
+            if content_type == "reels":
+                if self.reels_gen:
+                    try:
+                        video_path = self.reels_gen.generate(content, duration=30)
+                        context.user_data["preview_path"] = video_path
+                        context.user_data["preview_type"] = "video"
+                        with open(video_path, "rb") as f:
+                            await query.message.reply_video(f, caption=content["caption"])
+                    except Exception as e:
+                        logger.warning(f"Gagal generate Reels: {e}, fallback ke gambar")
+                        image_path = self.image_gen.generate(content, f"reels_fallback_{int(time.time())}.png")
+                        context.user_data["preview_path"] = image_path
+                        context.user_data["preview_type"] = "image"
+                        with open(image_path, "rb") as f:
+                            await query.message.reply_photo(f, caption=content["caption"])
+                else:
+                    image_path = self.image_gen.generate(content, f"reels_fallback_{int(time.time())}.png")
+                    context.user_data["preview_path"] = image_path
+                    context.user_data["preview_type"] = "image"
+                    with open(image_path, "rb") as f:
+                        await query.message.reply_photo(f, caption=content["caption"])
+
+            elif content_type == "post":
+                image_path = self.image_gen.generate(content, f"post_{int(time.time())}.png")
+                context.user_data["preview_path"] = image_path
+                context.user_data["preview_type"] = "image"
+                with open(image_path, "rb") as f:
+                    await query.message.reply_photo(f, caption=content["caption"])
+
+            elif content_type == "story":
+                story_path = self.image_gen.generate_story(content, f"story_{int(time.time())}.png")
+                context.user_data["preview_path"] = story_path
+                context.user_data["preview_type"] = "image"
+                with open(story_path, "rb") as f:
+                    await query.message.reply_photo(f, caption="📖 Preview Story")
+
+            elif content_type == "carousel":
+                paths = self.image_gen.generate_carousel(content, prefix=f"carousel_{query.from_user.id}")
+                context.user_data["carousel_paths"] = paths
+                context.user_data["carousel_content"] = content
+                context.user_data["preview_type"] = "carousel"
+
+                files = []
+                media_group = []
+                try:
+                    for i, p in enumerate(paths):
+                        f = open(p, "rb")
+                        files.append(f)
+                        media_group.append(InputMediaPhoto(f, caption=f"Slide {i+1}/3" if i == 0 else None))
+                    await query.message.reply_media_group(media_group)
+                finally:
+                    for f in files:
+                        f.close()
+
+            keyboard = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("✅ Post ke IG", callback_data="confirm_upload"),
+                    InlineKeyboardButton("🔄 Coba Lain", callback_data="retry_content"),
+                ],
+                [InlineKeyboardButton("❌ Batal", callback_data="cancel_content")],
+            ])
+            await query.message.reply_text("Mau post ke Instagram?", reply_markup=keyboard)
+
+        except Exception as e:
+            await query.edit_message_text(f"❌ Error: {str(e)}")
+
+    async def content_confirm_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        if not self._is_allowed(update.effective_user.id):
+            return
+
+        if query.data == "confirm_upload":
+            content = context.user_data.get("preview_content")
+            if not content:
+                await query.edit_message_text("❌ Session expired. Silakan buat konten lagi.")
+                return
+
+            content_type = context.user_data.get("content_type", "post")
+            preview_type = context.user_data.get("preview_type", "image")
+
+            await query.edit_message_text("⏳ Mengupload ke Instagram...")
+
+            if content_type == "reels" and preview_type == "video":
+                video_path = context.user_data.get("preview_path")
+                if video_path:
+                    ok, result = self.ig_uploader.upload_reel(video_path, content["caption"])
+                else:
+                    await query.edit_message_text("❌ Video tidak ditemukan.")
+                    return
+            elif content_type == "carousel":
+                paths = context.user_data.get("carousel_paths")
+                if paths:
+                    ok, result = self.ig_uploader.upload_album(paths, content["caption"])
+                else:
+                    await query.edit_message_text("❌ Carousel tidak ditemukan.")
+                    return
+            elif content_type == "story":
+                story_path = context.user_data.get("preview_path")
+                if story_path:
+                    ok, result = self.ig_uploader.upload_story(story_path)
+                else:
+                    await query.edit_message_text("❌ Story tidak ditemukan.")
+                    return
+            else:
+                image_path = context.user_data.get("preview_path")
+                if image_path:
+                    ok, result = self.ig_uploader.upload_photo(image_path, content["caption"])
+                else:
+                    await query.edit_message_text("❌ Gambar tidak ditemukan.")
+                    return
+
+            status = "✅ " + result if ok else "❌ " + result
+            await query.edit_message_text(status, reply_markup=_main_menu_keyboard())
+
+        elif query.data == "retry_content":
+            await query.message.delete()
+            await query.message.reply_text(
+                "📝 Pilih jenis konten yang ingin dibuat:",
+                reply_markup=_create_content_keyboard(),
+            )
+
+        elif query.data == "cancel_content":
+            await query.message.delete()
+
     def run(self):
         self._app = Application.builder().token(self.token).build()
 
@@ -913,6 +1115,9 @@ class TelegramBot:
         self._app.add_handler(CallbackQueryHandler(self.story_callback, pattern="^(post_story|story_done)$"))
         self._app.add_handler(CallbackQueryHandler(self.carousel_callback, pattern="^(carousel_upload|carousel_cancel)$"))
         self._app.add_handler(CallbackQueryHandler(self.menu_callback, pattern="^menu_"))
+        self._app.add_handler(CallbackQueryHandler(self.create_content_callback, pattern="^create_"))
+        self._app.add_handler(CallbackQueryHandler(self.content_theme_callback, pattern="^content_theme_"))
+        self._app.add_handler(CallbackQueryHandler(self.content_confirm_callback, pattern="^(confirm_upload|retry_content|cancel_content)$"))
 
         self._app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.any_message))
 

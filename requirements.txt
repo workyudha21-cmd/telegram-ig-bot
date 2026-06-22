@@ -7,3 +7,5 @@ python-dotenv==1.0.0
 arabic-reshaper==3.0.1
 python-bidi==0.6.10
 pytz>=2024.1
+moviepy>=1.0.3
+gTTS>=2.5.0

@@ -70,6 +70,7 @@ from image_generator import ImageGenerator
 from instagram_uploader import InstagramUploader
 from telegram_bot import TelegramBot
 from trending_content_generator import TrendingContentGenerator
+from reels_generator import ReelsGenerator
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -239,6 +240,9 @@ def main():
     else:
         logger.warning("NEWS_API_KEY atau GEMINI_API_KEY tidak diatur. Fitur /trending nonaktif.")
 
+    reels_gen = ReelsGenerator(width=1080, height=1920)
+    logger.info("ReelsGenerator diinisialisasi")
+
     def shutdown(signum, frame):
         logger.info("Menerima sinyal shutdown...")
         _shutdown_event.set()
@@ -254,6 +258,7 @@ def main():
         ig_uploader=ig_uploader,
         allowed_user_ids=ALLOWED_USER_IDS,
         trending_content_gen=trending_content_gen,
+        reels_gen=reels_gen,
     )
 
     scheduler_thread = threading.Thread(
