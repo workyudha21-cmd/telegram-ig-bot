@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environment
+.venv
+venv
+ENV
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+logs/*.log
+
+# Output files
+output/*.png
+output/*.mp4
+
+# Temporary files
+*.tmp
+*.temp
+
+# Documentation
+*.md
+LICENSE
+
+# Railway
+railway.json
+
+# Docker
+Dockerfile
+.dockerignore
