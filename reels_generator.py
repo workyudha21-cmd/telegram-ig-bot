@@ -1,15 +1,28 @@
 import os
 import time
+import sys
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
+print(f"reels_generator.py dimuat dari: {__file__}")
+print(f"Python version: {sys.version}")
+
 try:
+    import moviepy
+    print(f"moviepy version: {moviepy.__version__}")
+    print(f"moviepy location: {moviepy.__file__}")
     from moviepy.editor import ImageSequenceClip, AudioFileClip, concatenate_audioclips
     MOVIEPY_AVAILABLE = True
-    print("moviepy berhasil diimport")
+    print("moviepy.editor berhasil diimport")
 except ImportError as e:
-    MOVIEPY_AVAILABLE = False
-    print(f"ERROR: moviepy tidak tersedia: {e}")
+    try:
+        print(f"moviepy.editor gagal, mencoba import langsung: {e}")
+        from moviepy import ImageSequenceClip, AudioFileClip, concatenate_audioclips
+        MOVIEPY_AVAILABLE = True
+        print("moviepy berhasil diimport (alternatif)")
+    except ImportError as e2:
+        MOVIEPY_AVAILABLE = False
+        print(f"ERROR: moviepy tidak tersedia: {e}, {e2}")
 except Exception as e:
     MOVIEPY_AVAILABLE = False
     print(f"ERROR: Gagal import moviepy: {e}")
@@ -314,8 +327,11 @@ class ReelsGenerator:
                     loops = int(actual_duration / audio.duration) + 1
                     audio_clips = [audio] * loops
                     audio = concatenate_audioclips(audio_clips)
-                audio = audio.subclip(0, actual_duration)
-                video = video.set_audio(audio)
+                try:
+                    audio = audio.subclipped(0, actual_duration)
+                except AttributeError:
+                    audio = audio.subclip(0, actual_duration)
+                video = video.with_audio(audio)
             except Exception as e:
                 print(f"Warning: Gagal menambah audio: {e}")
 
