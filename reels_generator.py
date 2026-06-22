@@ -6,9 +6,13 @@ import numpy as np
 try:
     from moviepy.editor import ImageSequenceClip, AudioFileClip, concatenate_audioclips
     MOVIEPY_AVAILABLE = True
+    print("moviepy berhasil diimport")
 except ImportError as e:
     MOVIEPY_AVAILABLE = False
-    print(f"Warning: moviepy tidak tersedia: {e}")
+    print(f"ERROR: moviepy tidak tersedia: {e}")
+except Exception as e:
+    MOVIEPY_AVAILABLE = False
+    print(f"ERROR: Gagal import moviepy: {e}")
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
 AUDIO_DIR = os.path.join(os.path.dirname(__file__), "audio")
