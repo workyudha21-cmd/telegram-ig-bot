@@ -1122,4 +1122,5 @@ class TelegramBot:
             write_timeout=30,
             connect_timeout=30,
             pool_timeout=30,
+            poll_interval=2.0,
         )
