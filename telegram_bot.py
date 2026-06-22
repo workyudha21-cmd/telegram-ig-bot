@@ -111,13 +111,6 @@ def _story_keyboard():
     ])
 
 
-def _theme_keyboard():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton(name, callback_data=f"theme_{key}")]
-        for key, name in THEME_NAMES.items()
-    ])
-
-
 def _layout_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton(name, callback_data=f"layout_{key}")]
