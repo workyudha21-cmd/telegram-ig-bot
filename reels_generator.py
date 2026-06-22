@@ -75,6 +75,8 @@ def _get_title(content):
         book = content.get("book", "")
         number = content.get("hadith_number", "")
         return f"HR. {book} No. {number}" if number else f"HR. {book}"
+    if t in ("dua", "dzikir"):
+        return content.get("source", "Dzikir")
     surah = content.get("surah", "")
     ayat = content.get("ayat", "")
     return f"QS. {surah} : {ayat}"

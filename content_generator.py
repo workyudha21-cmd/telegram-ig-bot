@@ -74,6 +74,8 @@ def _get_title(verse: Dict[str, Any]) -> str:
         book = verse.get("book", "")
         number = verse.get("hadith_number", "")
         return f"HR. {book} No. {number}" if number else f"HR. {book}"
+    if t in ("dua", "dzikir"):
+        return verse.get("source", "Dzikir")
     surah = verse.get("surah", "")
     ayat = verse.get("ayat", "")
     return f"QS. {surah} : {ayat}"
