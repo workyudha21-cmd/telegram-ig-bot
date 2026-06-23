@@ -299,6 +299,15 @@ class TelegramBot:
         try:
             layout = context.user_data.get("selected_layout")
             content, path = self._generate(context, layout=layout)
+            logger.info(
+                "Generated post: type=%s surah=%s ayat=%s source=%s layout=%s arabic[:30]=%r",
+                content.get("type", "?"),
+                content.get("surah", ""),
+                content.get("ayat", ""),
+                content.get("source", ""),
+                layout or "random",
+                content.get("arabic", "")[:30],
+            )
             with open(path, "rb") as f:
                 await update.message.reply_photo(f, caption=content["caption"])
             ok, result = self._upload_with_retry(
@@ -953,6 +962,15 @@ class TelegramBot:
             content = self.content_gen.get_random(theme=theme)
             self.content_gen.mark_generated(content)
             context.user_data["preview_content"] = content
+            logger.info(
+                "Generated %s theme=%s: type=%s surah=%s ayat=%s source=%s arabic[:30]=%r",
+                content_type, theme,
+                content.get("type", "?"),
+                content.get("surah", ""),
+                content.get("ayat", ""),
+                content.get("source", ""),
+                content.get("arabic", "")[:30],
+            )
 
             if content_type == "reels":
                 if self.reels_gen:

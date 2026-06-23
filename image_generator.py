@@ -264,6 +264,16 @@ class ImageGenerator:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         path = os.path.join(OUTPUT_DIR, output_filename)
         img.save(path, quality=95)
+
+        caption_arabic = content.get("arabic", "")
+        image_arabic_raw = getattr(self, "_last_arabic_raw", "")
+        if caption_arabic and image_arabic_raw and caption_arabic != image_arabic_raw:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Caption/Image Arabic mismatch: title=%s caption=%r image=%r",
+                title_text, caption_arabic[:60], image_arabic_raw[:60],
+            )
+
         return path
 
     def _layout_classic(self, draw, content, title_text, footer_text, margin, max_w, accent):
@@ -313,6 +323,8 @@ class ImageGenerator:
             x = (self.width - (bbox[2] - bbox[0])) // 2
             draw.text((x, y), line, fill="#f8f9fa", font=arabic_font_used)
             y += self._arabic_line_height(line, arabic_font_used)
+        self._last_arabic_lines = list(arabic_lines)
+        self._last_arabic_raw = arabic_raw
         y += gap
 
         y = self._draw_multiline_centered(draw, translation_lines, y, font_body, "#f8f9fa")
@@ -373,6 +385,8 @@ class ImageGenerator:
             x = (self.width - (bbox[2] - bbox[0])) // 2
             draw.text((x, y), line, fill="#f8f9fa", font=font_try)
             y += self._arabic_line_height(line, font_try)
+        self._last_arabic_lines = list(arabic_lines)
+        self._last_arabic_raw = arabic_raw
         y += gap
 
         y = self._draw_multiline_centered(draw, trans_lines, y, font_body, "#e9ecef")
@@ -410,6 +424,9 @@ class ImageGenerator:
         if footer_y + footer_h > self.height - margin:
             footer_y = self.height - margin - footer_h
         self._draw_text_centered(draw, footer_text, footer_y, self.font_footer, accent, anchor="mt")
+
+        self._last_arabic_lines = []
+        self._last_arabic_raw = content.get("arabic", "")
 
     def generate_carousel(self, content, prefix="carousel"):
         paths = []
