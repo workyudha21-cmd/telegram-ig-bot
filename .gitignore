@@ -12,6 +12,13 @@ data/generated.json
 data/history.json
 data/schedule.json
 
+# Lock files (runtime only)
+*.lock
+data/*.lock
+
+# Runtime logs
+logs/
+
 # Python
 __pycache__/
 *.py[cod]

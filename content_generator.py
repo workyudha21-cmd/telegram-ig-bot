@@ -1,10 +1,13 @@
 import datetime
 import fcntl
 import json
+import logging
 import os
 import random
 import threading
 from typing import Dict, List, Optional, Set, Tuple, Any
+
+logger = logging.getLogger(__name__)
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 DEFAULT_DATA_PATHS = [
@@ -14,6 +17,7 @@ DEFAULT_DATA_PATHS = [
     os.path.join(DATA_DIR, "dzikir_content.json"),
 ]
 GENERATED_PATH = os.path.join(DATA_DIR, "generated.json")
+HISTORY_PATH = os.path.join(DATA_DIR, "history.json")
 GENERATED_MAX_ENTRIES = 2000
 
 
@@ -213,16 +217,65 @@ class ContentGenerator:
         except (json.JSONDecodeError, OSError):
             return set()
 
+    @staticmethod
+    def _load_recent_keys(days: int = 30) -> Set[Tuple[str, ...]]:
+        if not os.path.exists(HISTORY_PATH):
+            return set()
+        try:
+            with open(HISTORY_PATH, "r", encoding="utf-8") as f:
+                history = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning(f"Gagal baca history.json: {e}")
+            return set()
+
+        if not days or days <= 0:
+            return set()
+
+        cutoff = datetime.datetime.now() - datetime.timedelta(days=days)
+        recent: Set[Tuple[str, ...]] = set()
+        for item in history:
+            ts_str = item.get("timestamp", "")
+            if not ts_str:
+                continue
+            try:
+                ts = datetime.datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                continue
+            if ts < cutoff:
+                continue
+            content_type = item.get("type", "quran") or "quran"
+            surah = item.get("surah", "") or ""
+            ayat = item.get("ayat", "") or ""
+            if not surah and not ayat:
+                continue
+            recent.add((content_type, str(surah), str(ayat)))
+        return recent
+
+    @staticmethod
+    def _history_key(verse: Dict[str, Any]) -> Tuple[str, str, str]:
+        content_type = verse.get("type", "quran") or "quran"
+        if content_type == "hadith":
+            return (content_type, str(verse.get("book", "") or ""), str(verse.get("hadith_number", "") or ""))
+        if content_type in ("dua", "dzikir"):
+            return (content_type, str(verse.get("source", "") or ""), str(verse.get("arabic", ""))[:64])
+        return (content_type, str(verse.get("surah", "") or ""), str(verse.get("ayat", "") or ""))
+
     def _save_generated(self):
         os.makedirs(os.path.dirname(GENERATED_PATH), exist_ok=True)
         lock_path = GENERATED_PATH + ".lock"
-        with open(lock_path, "w") as lock_file:
+        lock_file = open(lock_path, "w")
+        try:
             fcntl.flock(lock_file, fcntl.LOCK_EX)
             try:
                 with open(GENERATED_PATH, "w", encoding="utf-8") as f:
                     json.dump(list(self.generated_keys), f, indent=2)
             finally:
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
+        except Exception as e:
+            logger.error(f"Gagal menyimpan generated.json: {e}")
+            raise
+        finally:
+            lock_file.close()
 
     def mark_generated(self, content):
         with self._lock:
@@ -238,6 +291,27 @@ class ContentGenerator:
             self.generated_keys = set()
             if os.path.exists(GENERATED_PATH):
                 os.remove(GENERATED_PATH)
+
+    @staticmethod
+    def cleanup_stale_locks(data_dir: Optional[str] = None, max_age_seconds: int = 3600) -> int:
+        target_dir = data_dir or DATA_DIR
+        if not os.path.isdir(target_dir):
+            return 0
+        now = datetime.datetime.now().timestamp()
+        removed = 0
+        for fname in os.listdir(target_dir):
+            if not fname.endswith(".lock"):
+                continue
+            fpath = os.path.join(target_dir, fname)
+            try:
+                mtime = os.path.getmtime(fpath)
+                if now - mtime > max_age_seconds:
+                    os.remove(fpath)
+                    removed += 1
+                    logger.info(f"Removed stale lock file: {fpath}")
+            except OSError as e:
+                logger.warning(f"Gagal cek/hapus lock {fpath}: {e}")
+        return removed
 
     def list_themes(self):
         themes = set(v["theme"] for v in self.verses)
@@ -276,20 +350,39 @@ class ContentGenerator:
                 return calendar_map[weekday]
         return None
 
-    def get_random(self, theme=None):
+    def get_random(self, theme=None, exclude_recent_days: int = 0):
         with self._lock:
             pool = self.verses
             if theme:
                 pool = [v for v in self.verses if v.get("theme") == theme]
-            available = [v for v in pool if _key(v) not in self.generated_keys]
+            recent_keys = self._load_recent_keys(exclude_recent_days) if exclude_recent_days else set()
+            available = [
+                v for v in pool
+                if _key(v) not in self.generated_keys
+                and (not recent_keys or self._history_key(v) not in recent_keys)
+            ]
             if not available:
                 if theme:
-                    available = [v for v in self.verses if _key(v) not in self.generated_keys]
+                    available = [
+                        v for v in self.verses
+                        if _key(v) not in self.generated_keys
+                        and (not recent_keys or self._history_key(v) not in recent_keys)
+                    ]
                 if not available:
                     self.reset_generated()
-                    available = [v for v in pool if _key(v) not in self.generated_keys]
+                    available = [
+                        v for v in pool
+                        if _key(v) not in self.generated_keys
+                        and (not recent_keys or self._history_key(v) not in recent_keys)
+                    ]
                     if not available and theme:
-                        available = [v for v in self.verses if _key(v) not in self.generated_keys]
+                        available = [
+                            v for v in self.verses
+                            if _key(v) not in self.generated_keys
+                            and (not recent_keys or self._history_key(v) not in recent_keys)
+                        ]
+            if not available:
+                available = pool if pool else self.verses
             verse = random.choice(available)
             return self._format(verse)
 

@@ -1,22 +1,25 @@
+import logging
 import os
 import time
 import sys
 
+logger = logging.getLogger(__name__)
+
 try:
     from moviepy.editor import ImageClip, AudioFileClip, concatenate_audioclips
     MOVIEPY_AVAILABLE = True
-    print("moviepy berhasil diimport")
+    logger.info("moviepy berhasil diimport")
 except ImportError as e:
     try:
         from moviepy import ImageClip, AudioFileClip, concatenate_audioclips
         MOVIEPY_AVAILABLE = True
-        print("moviepy berhasil diimport (alternatif)")
+        logger.info("moviepy berhasil diimport (alternatif)")
     except ImportError as e2:
         MOVIEPY_AVAILABLE = False
-        print(f"ERROR: moviepy tidak tersedia: {e2}")
+        logger.error(f"moviepy tidak tersedia: {e2}")
 except Exception as e:
     MOVIEPY_AVAILABLE = False
-    print(f"ERROR: Gagal import moviepy: {e}")
+    logger.error(f"Gagal import moviepy: {e}")
 
 from image_generator import THEME_COLORS, ImageGenerator
 
@@ -85,28 +88,29 @@ class ReelsGenerator:
         if not MOVIEPY_AVAILABLE:
             raise ImportError("moviepy tidak tersedia. Install dengan: pip install moviepy")
 
-        print(f"Generating Reels from image: {image_path}")
-        print(f"Duration: {duration}s, audio: {audio_type}")
+        logger.info(f"Generating Reels from image: {image_path}")
+        logger.info(f"Duration: {duration}s, audio: {audio_type}")
 
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Image not found: {image_path}")
 
         img = _resize_image_to_vertical(image_path, self.width, self.height)
-        print(f"Image resized to: {img.size}")
+        logger.info(f"Image resized to: {img.size}")
 
         import numpy as np
         img_array = np.array(img)
-        print(f"Image array shape: {img_array.shape}")
+        logger.info(f"Image array shape: {img_array.shape}")
 
         fps = DEFAULT_FPS
-        print(f"Creating static video clip (fps={fps}, duration={duration}s)...")
+        logger.info(f"Creating static video clip (fps={fps}, duration={duration}s)...")
 
         video = ImageClip(img_array, duration=duration)
+        audio = None
 
         audio_path = os.path.join(AUDIO_DIR, "bismillah.mp3")
         if audio_type == "bismillah" and os.path.exists(audio_path):
             try:
-                print("Adding Bismillah audio...")
+                logger.info("Adding Bismillah audio...")
                 audio = AudioFileClip(audio_path)
                 if audio.duration < duration:
                     loops = int(duration / audio.duration) + 1
@@ -120,15 +124,16 @@ class ReelsGenerator:
                     video = video.with_audio(audio)
                 except AttributeError:
                     video = video.set_audio(audio)
-                print("Audio added successfully")
+                logger.info("Audio added successfully")
             except Exception as e:
-                print(f"Warning: Failed to add audio: {e}")
+                logger.warning(f"Failed to add audio: {e}")
+                audio = None
         else:
-            print("No audio added")
+            logger.info("No audio added")
 
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         output_path = os.path.join(OUTPUT_DIR, f"reels_{int(time.time())}.mp4")
-        print(f"Saving video to: {output_path}")
+        logger.info(f"Saving video to: {output_path}")
 
         video.write_videofile(
             output_path,
@@ -144,15 +149,16 @@ class ReelsGenerator:
             video.close()
         except Exception:
             pass
-        try:
-            audio.close()
-        except Exception:
-            pass
+        if audio is not None:
+            try:
+                audio.close()
+            except Exception:
+                pass
         del img_array
         import gc
         gc.collect()
 
-        print(f"Video saved: {output_path}")
+        logger.info(f"Video saved: {output_path}")
         return output_path
 
     def generate(self, content, duration=DEFAULT_DURATION, audio_type="bismillah"):
@@ -161,7 +167,7 @@ class ReelsGenerator:
 
         from image_generator import ImageGenerator
 
-        print("Step 1: Generating post image first...")
+        logger.info("Step 1: Generating post image first...")
         image_gen = ImageGenerator(
             width=1080,
             height=1080,
@@ -170,10 +176,10 @@ class ReelsGenerator:
 
         image_filename = f"reels_source_{int(time.time())}.png"
         image_path = image_gen.generate(content, image_filename)
-        print(f"Post image generated: {image_path}")
+        logger.info(f"Post image generated: {image_path}")
 
         reels_duration = min(DEFAULT_DURATION, duration)
-        print(f"Step 2: Converting to Reels video ({reels_duration}s)...")
+        logger.info(f"Step 2: Converting to Reels video ({reels_duration}s)...")
 
         try:
             output_path = self.generate_from_image(
@@ -187,8 +193,8 @@ class ReelsGenerator:
             try:
                 if os.path.exists(image_path):
                     os.remove(image_path)
-                    print(f"Cleaned up source image: {image_path}")
+                    logger.info(f"Cleaned up source image: {image_path}")
             except Exception as e:
-                print(f"Warning: Failed to clean up image: {e}")
+                logger.warning(f"Failed to clean up image: {e}")
             import gc
             gc.collect()

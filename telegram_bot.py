@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import time
+from typing import Dict, List, Tuple
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (
     Application,
@@ -119,6 +120,9 @@ def _layout_keyboard():
 
 
 class TelegramBot:
+    RATE_LIMIT_MAX_ACTIONS = 5
+    RATE_LIMIT_WINDOW_SECONDS = 60
+
     def __init__(self, token, content_gen, image_gen, ig_uploader, allowed_user_ids=None, trending_content_gen=None, reels_gen=None):
         self.token = token
         self.content_gen = content_gen
@@ -128,11 +132,39 @@ class TelegramBot:
         self.reels_gen = reels_gen
         self.allowed_user_ids = allowed_user_ids or []
         self._app = None
+        self._user_action_log: Dict[int, List[float]] = {}
 
     def _is_allowed(self, user_id):
         if not self.allowed_user_ids:
             return True
         return user_id in self.allowed_user_ids
+
+    def _check_rate_limit(self, user_id: int) -> Tuple[bool, int]:
+        now = time.time()
+        window = self.RATE_LIMIT_WINDOW_SECONDS
+        log = self._user_action_log.setdefault(user_id, [])
+        log[:] = [t for t in log if now - t < window]
+        if len(log) >= self.RATE_LIMIT_MAX_ACTIONS:
+            retry_after = int(window - (now - log[0])) + 1
+            return False, retry_after
+        log.append(now)
+        return True, 0
+
+    async def _enforce_rate_limit(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+        user_id = update.effective_user.id
+        allowed, retry_after = self._check_rate_limit(user_id)
+        if not allowed:
+            if update.callback_query:
+                await update.callback_query.answer(
+                    f"⏳ Terlalu cepat. Coba lagi dalam {retry_after}s.",
+                    show_alert=True,
+                )
+            else:
+                await update.message.reply_text(
+                    f"⏳ Terlalu banyak aksi. Coba lagi dalam {retry_after}s."
+                )
+            return False
+        return True
 
     def _generate(self, context, theme=None, trending=False, suffix="post.png", layout=None):
         if trending:
@@ -295,6 +327,8 @@ class TelegramBot:
     async def post(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self._is_allowed(update.effective_user.id):
             return
+        if not await self._enforce_rate_limit(update, context):
+            return
         msg = await update.message.reply_text("⏳ Membuat konten...")
         try:
             layout = context.user_data.get("selected_layout")
@@ -331,6 +365,8 @@ class TelegramBot:
     async def theme_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
+        if not await self._enforce_rate_limit(update, context):
+            return
         theme = query.data.replace("theme_", "")
         msg = await query.edit_message_text(f"⏳ Membuat konten tema: {THEME_NAMES.get(theme, theme)}...")
         try:
@@ -361,6 +397,8 @@ class TelegramBot:
     async def preview(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self._is_allowed(update.effective_user.id):
             return
+        if not await self._enforce_rate_limit(update, context):
+            return
         msg = await update.message.reply_text("⏳ Membuat preview...")
         try:
             layout = context.user_data.get("selected_layout")
@@ -376,6 +414,8 @@ class TelegramBot:
     async def preview_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
+        if not await self._enforce_rate_limit(update, context):
+            return
         if query.data == "confirm_post":
             content = context.user_data.get("preview_content")
             if not content:
@@ -410,6 +450,8 @@ class TelegramBot:
 
     async def trending(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self._is_allowed(update.effective_user.id):
+            return
+        if not await self._enforce_rate_limit(update, context):
             return
         if not self.trending_content_gen:
             await update.message.reply_text(
@@ -675,6 +717,8 @@ class TelegramBot:
     async def post_story(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self._is_allowed(update.effective_user.id):
             return
+        if not await self._enforce_rate_limit(update, context):
+            return
         msg = await update.message.reply_text("⏳ Membuat story...")
         try:
             content, _ = self._generate(context, suffix="story.png")
@@ -691,6 +735,8 @@ class TelegramBot:
 
     async def carousel(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self._is_allowed(update.effective_user.id):
+            return
+        if not await self._enforce_rate_limit(update, context):
             return
         msg = await update.message.reply_text("⏳ Membuat carousel (3 slide)...")
         try:
@@ -724,6 +770,8 @@ class TelegramBot:
     async def carousel_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
+        if not await self._enforce_rate_limit(update, context):
+            return
         if query.data == "carousel_upload":
             paths = context.user_data.get("carousel_paths")
             content = context.user_data.get("carousel_content")
@@ -951,6 +999,8 @@ class TelegramBot:
         await query.answer()
         if not self._is_allowed(update.effective_user.id):
             return
+        if not await self._enforce_rate_limit(update, context):
+            return
 
         theme = query.data.replace("content_theme_", "")
         content_type = context.user_data.get("content_type", "post")
@@ -1042,6 +1092,8 @@ class TelegramBot:
         query = update.callback_query
         await query.answer()
         if not self._is_allowed(update.effective_user.id):
+            return
+        if not await self._enforce_rate_limit(update, context):
             return
 
         if query.data == "confirm_upload":

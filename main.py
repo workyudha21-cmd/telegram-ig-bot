@@ -152,7 +152,7 @@ def auto_post(content_gen, image_gen, ig_uploader, calendar_map=None):
     last_error = "Unknown error"
     for attempt in range(1, max_retries + 1):
         try:
-            content = content_gen.get_random(theme=theme)
+            content = content_gen.get_random(theme=theme, exclude_recent_days=30)
             path = image_gen.generate(content, f"auto_{int(time.time())}.png")
             ok, msg = ig_uploader.upload_photo(path, content["caption"])
             logger.info(f"Auto-post: {msg}")
@@ -256,7 +256,22 @@ def main():
         show_title=True,
         show_arabic=False,
     )
-    ig_uploader = InstagramUploader(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD, INSTAGRAM_PROXY)
+
+    def _on_ig_auth_error(reason: str):
+        msg = (
+            f"⚠️ Instagram butuh login ulang!\n\n"
+            f"Alasan: {reason}\n\n"
+            f"Bot akan mencoba auto-relogin. Jika gagal terus, "
+            f"login manual via HP/browser lalu hapus file session di data/."
+        )
+        _notify_admin(msg)
+
+    ig_uploader = InstagramUploader(
+        INSTAGRAM_USERNAME,
+        INSTAGRAM_PASSWORD,
+        INSTAGRAM_PROXY,
+        on_login_failure=_on_ig_auth_error,
+    )
     atexit.register(ig_uploader.logout)
     trending_content_gen = None
     if NEWS_API_KEY and GEMINI_API_KEY:
