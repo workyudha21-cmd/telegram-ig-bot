@@ -137,9 +137,9 @@ class TestShowFlags(unittest.TestCase):
         if os.path.exists(self.test_dir):
             shutil.rmtree(self.test_dir)
 
-    def test_default_show_title_is_false(self):
+    def test_default_show_title_is_true(self):
         gen = ImageGenerator()
-        self.assertFalse(gen.show_title)
+        self.assertTrue(gen.show_title)
 
     def test_default_show_arabic_is_false(self):
         gen = ImageGenerator()
@@ -159,7 +159,7 @@ class TestShowFlags(unittest.TestCase):
         gen = ImageGenerator()
         path = gen.generate(self.content, os.path.join(self.test_dir, "no_arabic.png"), layout=0)
         self.assertTrue(os.path.exists(path))
-        # _last_arabic_raw should be empty when show_arabic=False
+        # _last_arabic_raw should be empty when show_arabic=False (default)
         self.assertEqual(gen._last_arabic_raw, "")
 
     def test_generate_with_show_arabic_includes_arabic(self):
@@ -180,15 +180,17 @@ class TestShowFlags(unittest.TestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual(gen._last_arabic_raw, "")
 
-    def test_all_themes_with_no_title_no_arabic(self):
+    def test_all_themes_with_default_title_no_arabic(self):
         gen = ImageGenerator()
         for theme in ["keimanan", "motivasi", "muhasabah", "akhlak", "keluarga", "doa", "dzikir"]:
             content = self.content.copy()
             content["theme"] = theme
             path = gen.generate(content, os.path.join(self.test_dir, f"theme_{theme}.png"))
             self.assertTrue(os.path.exists(path))
+            # Arabic should still be hidden (default show_arabic=False)
+            self.assertEqual(gen._last_arabic_raw, "")
 
-    def test_story_with_no_title_no_arabic(self):
+    def test_story_with_title_no_arabic(self):
         gen = ImageGenerator()
         path = gen.generate_story(self.content, os.path.join(self.test_dir, "story.png"))
         self.assertTrue(os.path.exists(path))
@@ -200,7 +202,7 @@ class TestShowFlags(unittest.TestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual(gen._last_arabic_raw, self.content["arabic"])
 
-    def test_carousel_default_no_title_no_arabic(self):
+    def test_carousel_default_with_title_no_arabic(self):
         gen = ImageGenerator()
         paths = gen.generate_carousel(self.content, prefix=os.path.join(self.test_dir, "carousel"))
         self.assertEqual(len(paths), 3)

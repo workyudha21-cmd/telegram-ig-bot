@@ -89,7 +89,7 @@ def _get_arabic_reshaper():
 
 
 class ImageGenerator:
-    def __init__(self, width=1080, height=1080, instagram_username="", show_title=False, show_arabic=False):
+    def __init__(self, width=1080, height=1080, instagram_username="", show_title=True, show_arabic=False):
         self.width = width
         self.height = height
         self.instagram_username = instagram_username.strip().lstrip("@")

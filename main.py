@@ -253,7 +253,7 @@ def main():
     content_gen = ContentGenerator(caption_style=CAPTION_STYLE)
     image_gen = ImageGenerator(
         instagram_username=INSTAGRAM_USERNAME,
-        show_title=False,
+        show_title=True,
         show_arabic=False,
     )
     ig_uploader = InstagramUploader(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD, INSTAGRAM_PROXY)
