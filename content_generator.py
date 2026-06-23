@@ -91,13 +91,14 @@ def _get_title(verse: Dict[str, Any]) -> str:
 
 
 def _build_hashtags(theme: str) -> str:
-    base = random.choice(_HASHTAG_SETS)
     themed = f"#{theme}"
-    if random.random() < 0.4:
-        engagement = _HASHTAG_ENGAGEMENT
-    else:
-        engagement = ""
-    return f"{themed} {base} {_HASHTAG_BRANDED} {engagement}".strip()
+    pool = []
+    for tagset in _HASHTAG_SETS:
+        for tag in tagset.split():
+            if tag != themed and tag not in pool and tag not in _HASHTAG_BRANDED.split() and tag not in _HASHTAG_ENGAGEMENT.split():
+                pool.append(tag)
+    sampled = random.sample(pool, min(4, len(pool)))
+    return " ".join([themed] + sampled)
 
 
 def _caption_formal(content: Dict[str, Any]) -> str:

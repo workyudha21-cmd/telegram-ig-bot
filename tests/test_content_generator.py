@@ -78,6 +78,39 @@ class TestBuildHashtags(unittest.TestCase):
         result = _build_hashtags("islam")
         self.assertIn("#islam", result)
 
+    def test_returns_exactly_five_tags(self):
+        """Instagram allows max 30 tags but cleaner to use 5."""
+        for _ in range(20):
+            result = _build_hashtags("keluarga")
+            tags = result.split()
+            self.assertEqual(len(tags), 5, f"Expected 5 tags, got {len(tags)}: {result}")
+
+    def test_five_tags_for_each_theme(self):
+        for theme in ["keimanan", "motivasi", "muhasabah", "akhlak", "keluarga", "doa", "dzikir"]:
+            for _ in range(5):
+                result = _build_hashtags(theme)
+                tags = result.split()
+                self.assertEqual(len(tags), 5, f"Theme {theme}: got {len(tags)} tags")
+
+    def test_no_duplicate_tags(self):
+        for _ in range(20):
+            result = _build_hashtags("keluarga")
+            tags = result.split()
+            self.assertEqual(len(tags), len(set(tags)), f"Duplicate tags: {result}")
+
+    def test_first_tag_is_theme(self):
+        result = _build_hashtags("keluarga")
+        self.assertTrue(result.startswith("#keluarga"), f"Theme not first: {result}")
+
+    def test_caption_has_five_hashtags(self):
+        """End-to-end: caption styles should produce 5 hashtags in the last line."""
+        for style in ["random", "formal", "casual", "storytelling"]:
+            gen = ContentGenerator(caption_style=style)
+            gen.reset_generated()
+            content = gen.get_random(theme="keluarga")
+            last_line = content["caption"].strip().split("\n")[-1]
+            self.assertEqual(len(last_line.split()), 5, f"Style {style}: last line = {last_line}")
+
 
 class TestCaptionStyles(unittest.TestCase):
     def setUp(self):
