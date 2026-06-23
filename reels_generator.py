@@ -18,6 +18,12 @@ except Exception as e:
     MOVIEPY_AVAILABLE = False
     print(f"ERROR: Gagal import moviepy: {e}")
 
+from image_generator import THEME_COLORS, ImageGenerator
+
+
+def _get_title(content):
+    return ImageGenerator._get_title(content)
+
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
 AUDIO_DIR = os.path.join(os.path.dirname(__file__), "audio")
 
@@ -57,6 +63,23 @@ class ReelsGenerator:
     def __init__(self, width=TARGET_WIDTH, height=TARGET_HEIGHT):
         self.width = width
         self.height = height
+        self._image_gen = None
+        self._fonts_initialized = False
+
+    def _ensure_fonts(self):
+        if self._fonts_initialized:
+            return
+        self._image_gen = ImageGenerator()
+        self.font_title = self._image_gen.font_title
+        self.font_body = self._image_gen.font_body
+        self.font_small = self._image_gen.font_small
+        self._fonts_initialized = True
+
+    def __getattr__(self, name):
+        if name in ("font_title", "font_body", "font_small"):
+            self._ensure_fonts()
+            return getattr(self, name)
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def generate_from_image(self, image_path, duration=DEFAULT_DURATION, audio_type="bismillah", caption=""):
         if not MOVIEPY_AVAILABLE:

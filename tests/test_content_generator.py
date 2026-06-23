@@ -27,6 +27,18 @@ class TestGetTitle(unittest.TestCase):
         result = _get_title(verse)
         self.assertEqual(result, "QS. Al-Baqarah : 255")
 
+    def test_dua_uses_source_field(self):
+        from content_generator import _key
+        verse = {"type": "dua", "source": "QS. Al-Furqan: 74", "arabic": "رَبَّنَا"}
+        result = _get_title(verse)
+        self.assertEqual(result, "QS. Al-Furqan: 74")
+
+    def test_dzikir_uses_source_field(self):
+        from content_generator import _key
+        verse = {"type": "dzikir", "source": "HR. Bukhari & Muslim", "arabic": "سُبْحَانَ"}
+        result = _get_title(verse)
+        self.assertEqual(result, "HR. Bukhari & Muslim")
+
 
 class TestBuildHashtags(unittest.TestCase):
     def test_returns_string(self):
@@ -185,6 +197,155 @@ class TestContentGenerator(unittest.TestCase):
         styles = gen.list_caption_styles()
         self.assertIn("random", styles)
         self.assertIn("formal", styles)
+
+
+class TestKey(unittest.TestCase):
+    """Test _key() correctly identifies unique entries per type."""
+
+    def test_quran_key_uses_surah_ayat(self):
+        from content_generator import _key
+        v1 = {"type": "quran", "surah": "Al-Fatihah", "ayat": 1}
+        v2 = {"type": "quran", "surah": "Al-Fatihah", "ayat": 2}
+        self.assertNotEqual(_key(v1), _key(v2))
+
+    def test_hadith_key_uses_book_number(self):
+        from content_generator import _key
+        v1 = {"type": "hadith", "book": "Bukhari", "hadith_number": "1"}
+        v2 = {"type": "hadith", "book": "Bukhari", "hadith_number": "2"}
+        self.assertNotEqual(_key(v1), _key(v2))
+
+    def test_dua_key_uses_source_and_arabic(self):
+        from content_generator import _key
+        v1 = {"type": "dua", "source": "QS. Al-Baqarah: 201", "arabic": "رَبَّنَا آتِنَا"}
+        v2 = {"type": "dua", "source": "QS. Al-Baqarah: 201", "arabic": "رَبَّنَا اغْفِرْ"}
+        self.assertNotEqual(_key(v1), _key(v2))
+
+    def test_dzikir_key_uses_source_and_arabic(self):
+        from content_generator import _key
+        v1 = {"type": "dzikir", "source": "HR. Bukhari", "arabic": "سُبْحَانَ اللَّهِ"}
+        v2 = {"type": "dzikir", "source": "HR. Muslim", "arabic": "سُبْحَانَ اللَّهِ"}
+        self.assertNotEqual(_key(v1), _key(v2))
+
+    def test_different_types_produce_different_keys(self):
+        from content_generator import _key
+        quran = {"type": "quran", "surah": "Al-Fatihah", "ayat": 1}
+        dua = {"type": "dua", "source": "QS. Al-Fatihah: 1", "arabic": "test"}
+        self.assertNotEqual(_key(quran), _key(dua))
+
+
+class TestFormatDuaDzikir(unittest.TestCase):
+    """Test _format() preserves source field and handles dua/dzikir correctly."""
+
+    def setUp(self):
+        self.gen = ContentGenerator(caption_style="formal")
+
+    def test_dua_preserves_source_field(self):
+        verse = {
+            "type": "dua",
+            "source": "QS. Al-Furqan: 74",
+            "arabic": "رَبَّنَا هَبْ لَنَا",
+            "translation": "Ya Tuhan kami, anugerahkanlah",
+            "explanation": "Doa keluarga",
+            "theme": "keluarga",
+        }
+        result = self.gen._format(verse)
+        self.assertEqual(result["source"], "QS. Al-Furqan: 74")
+
+    def test_dzikir_preserves_source_field(self):
+        verse = {
+            "type": "dzikir",
+            "source": "HR. Bukhari & Muslim",
+            "arabic": "سُبْحَانَ اللَّهِ",
+            "translation": "Maha Suci Allah",
+            "explanation": "Dzikir ringan",
+            "theme": "dzikir",
+        }
+        result = self.gen._format(verse)
+        self.assertEqual(result["source"], "HR. Bukhari & Muslim")
+
+    def test_quran_result_has_empty_source(self):
+        verse = {
+            "type": "quran",
+            "surah": "Al-Fatihah",
+            "ayat": 1,
+            "arabic": "بِسْمِ اللَّهِ",
+            "translation": "Dengan nama Allah",
+            "tafsir": "Pembuka",
+            "theme": "keimanan",
+        }
+        result = self.gen._format(verse)
+        self.assertEqual(result["source"], "")
+
+    def test_dua_has_empty_surah_ayat(self):
+        verse = {
+            "type": "dua",
+            "source": "QS. Al-Furqan: 74",
+            "arabic": "رَبَّنَا",
+            "translation": "Ya Tuhan",
+            "explanation": "Doa",
+            "theme": "keluarga",
+        }
+        result = self.gen._format(verse)
+        self.assertEqual(result["surah"], "")
+        self.assertEqual(result["ayat"], "")
+
+    def test_dzikir_has_empty_surah_ayat(self):
+        verse = {
+            "type": "dzikir",
+            "source": "HR. Muslim",
+            "arabic": "سُبْحَانَ",
+            "translation": "Maha Suci",
+            "explanation": "Dzikir",
+            "theme": "dzikir",
+        }
+        result = self.gen._format(verse)
+        self.assertEqual(result["surah"], "")
+        self.assertEqual(result["ayat"], "")
+
+    def test_quran_has_surah_ayat(self):
+        verse = {
+            "type": "quran",
+            "surah": "Al-Baqarah",
+            "ayat": 255,
+            "arabic": "ٱللَّهُ",
+            "translation": "Allah",
+            "tafsir": "Ayat Kursi",
+            "theme": "keimanan",
+        }
+        result = self.gen._format(verse)
+        self.assertEqual(result["surah"], "Al-Baqarah")
+        self.assertEqual(result["ayat"], 255)
+
+    def test_hadith_uses_book_as_surah(self):
+        verse = {
+            "type": "hadith",
+            "book": "Bukhari",
+            "hadith_number": "6014",
+            "narrator": "Abu Hurairah",
+            "arabic": "مَنْ كَانَ",
+            "translation": "Barangsiapa",
+            "explanation": "Hadits",
+            "theme": "akhlak",
+        }
+        result = self.gen._format(verse)
+        self.assertEqual(result["surah"], "Bukhari")
+        self.assertEqual(result["ayat"], "6014")
+        self.assertEqual(result["source"], "")
+
+    def test_caption_arabic_matches_verse_arabic(self):
+        """Caption and image use same arabic text - critical for sync."""
+        verse = {
+            "type": "dua",
+            "source": "QS. Al-Furqan: 74",
+            "arabic": "رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا",
+            "translation": "Ya Tuhan kami",
+            "explanation": "Doa keluarga",
+            "theme": "keluarga",
+        }
+        result = self.gen._format(verse)
+        self.assertIn(verse["arabic"], result["caption"])
+        self.assertEqual(result["arabic"], verse["arabic"])
+        self.assertEqual(result["translation"], verse["translation"])
 
 
 if __name__ == "__main__":

@@ -65,5 +65,39 @@ class TestImageGenerator(unittest.TestCase):
             self.assertTrue(os.path.exists(result))
 
 
+class TestImageGeneratorTitle(unittest.TestCase):
+    """Test _get_title() in image_generator handles all content types."""
+
+    def test_quran_title(self):
+        content = {"type": "quran", "surah": "Al-Fatihah", "ayat": "1"}
+        result = ImageGenerator._get_title(content)
+        self.assertEqual(result, "QS. Al-Fatihah : 1")
+
+    def test_hadith_title_with_number(self):
+        content = {"type": "hadith", "book": "Bukhari", "hadith_number": "123"}
+        result = ImageGenerator._get_title(content)
+        self.assertEqual(result, "HR. Bukhari No. 123")
+
+    def test_hadith_title_without_number(self):
+        content = {"type": "hadith", "book": "Muslim"}
+        result = ImageGenerator._get_title(content)
+        self.assertEqual(result, "HR. Muslim")
+
+    def test_dua_uses_source(self):
+        content = {"type": "dua", "source": "QS. Al-Furqan: 74"}
+        result = ImageGenerator._get_title(content)
+        self.assertEqual(result, "QS. Al-Furqan: 74")
+
+    def test_dzikir_uses_source(self):
+        content = {"type": "dzikir", "source": "HR. Bukhari & Muslim"}
+        result = ImageGenerator._get_title(content)
+        self.assertEqual(result, "HR. Bukhari & Muslim")
+
+    def test_dua_falls_back_to_surah(self):
+        content = {"type": "dua", "surah": "QS. Thaha: 25"}
+        result = ImageGenerator._get_title(content)
+        self.assertEqual(result, "QS. Thaha: 25")
+
+
 if __name__ == "__main__":
     unittest.main()

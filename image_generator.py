@@ -165,7 +165,8 @@ class ImageGenerator:
             number = content.get("hadith_number") or content.get("ayat", "")
             return f"HR. {book} No. {number}" if number else f"HR. {book}"
         if t in ("dua", "dzikir"):
-            return content.get("source", "Dzikir")
+            source = content.get("source") or content.get("surah", "")
+            return source if source else "Dzikir"
         surah = content.get("surah", "")
         ayat = content.get("ayat", "")
         return f"QS. {surah} : {ayat}"

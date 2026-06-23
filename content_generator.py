@@ -21,6 +21,8 @@ def _key(verse: Dict[str, Any]) -> Tuple[str, ...]:
     t = verse.get("type", "quran")
     if t == "hadith":
         return (t, str(verse.get("book", "")), str(verse.get("hadith_number", "")))
+    if t in ("dua", "dzikir"):
+        return (t, str(verse.get("source", "")), str(verse.get("arabic", ""))[:64])
     return (t, str(verse.get("surah", "")), str(verse.get("ayat", "")))
 
 
@@ -294,6 +296,7 @@ class ContentGenerator:
             "explanation": verse.get("explanation") or verse.get("tafsir", ""),
             "theme": verse.get("theme", ""),
             "type": verse.get("type", "quran"),
+            "source": verse.get("source", ""),
         }
 
         if verse.get("type") == "hadith":
@@ -302,6 +305,9 @@ class ContentGenerator:
             result["narrator"] = verse.get("narrator", "")
             result["surah"] = verse.get("book", "")
             result["ayat"] = verse.get("hadith_number", "")
+        elif verse.get("type") in ("dua", "dzikir"):
+            result["surah"] = ""
+            result["ayat"] = ""
         else:
             result["surah"] = verse.get("surah", "")
             result["ayat"] = verse.get("ayat", "")

@@ -78,5 +78,69 @@
     "theme": "dzikir",
     "type": "dzikir",
     "source": "HR. Muslim"
+  },
+  {
+    "arabic": "حَسْبِيَ اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ",
+    "translation": "Cukuplah Allah bagiku, tidak ada tuhan selain-Nya, hanya kepada-Nya aku bertawakkal, dan Dia adalah Tuhan yang memiliki 'Arsy yang agung.",
+    "explanation": "Dzikir yang dibaca 7 kali pagi dan petang, menjadi pelindung dari segala urusan kepada Allah.",
+    "theme": "dzikir",
+    "type": "dzikir",
+    "source": "HR. Abu Dawud"
+  },
+  {
+    "arabic": "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ",
+    "translation": "Dengan nama Allah yang dengan nama-Nya tidak ada sesuatu pun di bumi maupun di langit yang dapat membahayakan, dan Dia Maha Mendengar lagi Maha Mengetahui.",
+    "explanation": "Dzikir yang dibaca 3 kali pagi dan petang, pelindung dari segala bahaya.",
+    "theme": "dzikir",
+    "type": "dzikir",
+    "source": "HR. Abu Dawud & At-Tirmidzi"
+  },
+  {
+    "arabic": "رَضِيتُ بِاللَّهِ رَبًّا وَبِالْإِسْلَامِ دِينًا وَبِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا",
+    "translation": "Aku ridha Allah sebagai Tuhanku, Islam sebagai agamaku, dan Muhammad shallallahu 'alaihi wa sallam sebagai nabiku.",
+    "explanation": "Dzikir yang dibaca 3 kali pagi dan petang, menjadi hak atas surga.",
+    "theme": "dzikir",
+    "type": "dzikir",
+    "source": "HR. Ahmad & At-Tirmidzi"
+  },
+  {
+    "arabic": "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ وَرِضَا نَفْسِهِ وَزِنَةَ عَرْشِهِ وَمِدَادَ كَلِمَاتِهِ",
+    "translation": "Maha Suci Allah dan dengan pujian-Nya sebanyak makhluk-Nya, sebanyak keridhaan-Nya, seberat 'Arsy-Nya, dan sebanyak tinta tulisan kalimat-kalimat-Nya.",
+    "explanation": "Dzikir berat di timbangan pahala, dibaca 3 kali pagi.",
+    "theme": "dzikir",
+    "type": "dzikir",
+    "source": "HR. Muslim"
+  },
+  {
+    "arabic": "اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ",
+    "translation": "Ya Allah, dengan-Mu kami memasuki pagi, dengan-Mu kami memasuki petang, dengan-Mu kami hidup, dengan-Mu kami mati, dan kepada-Mu kebangkitan (hari kiamat).",
+    "explanation": "Dzikir pagi yang mengakui bahwa seluruh kehidupan ada di tangan Allah.",
+    "theme": "dzikir",
+    "type": "dzikir",
+    "source": "HR. At-Tirmidzi"
+  },
+  {
+    "arabic": "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
+    "translation": "Ya Allah, Engkau adalah Tuhanku, tidak ada tuhan selain Engkau, Engkau telah menciptakan aku dan aku adalah hamba-Mu, dan aku berada di atas perjanjian dan janji-Mu semampuku, aku berlindung kepada-Mu dari kejahatan yang aku perbuat, aku mengakui nikmat-Mu kepadaku dan aku mengakui dosaku, maka ampunilah aku, sesungguhnya tidak ada yang mengampuni dosa-dosa selain Engkau.",
+    "explanation": "Sayyidul Istighfar - dzikir penghapus dosa yang utama, dibaca pagi dan petang.",
+    "theme": "dzikir",
+    "type": "dzikir",
+    "source": "HR. Bukhari"
+  },
+  {
+    "arabic": "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ",
+    "translation": "Tidak ada daya dan kekuatan kecuali dengan pertolongan Allah.",
+    "explanation": "Dzikir yang ringan di lisan, berat di timbangan, dan dicintai Ar-Rahman.",
+    "theme": "dzikir",
+    "type": "dzikir",
+    "source": "HR. Bukhari & Muslim"
+  },
+  {
+    "arabic": "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ",
+    "translation": "Ya Allah, berikanlah shalawat kepada Muhammad dan kepada keluarga Muhammad, sebagaimana Engkau telah memberikan shalawat kepada Ibrahim dan keluarga Ibrahim. Sesungguhnya Engkau Maha Terpuji lagi Maha Mulia.",
+    "explanation": "Shalawat kepada Nabi Muhammad shallallahu 'alaihi wa sallam, dibaca banyak-banyak di setiap waktu.",
+    "theme": "dzikir",
+    "type": "dzikir",
+    "source": "HR. Bukhari & Muslim"
   }
 ]

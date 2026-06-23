@@ -118,5 +118,85 @@
     "theme": "keluarga",
     "type": "dua",
     "source": "QS. As-Shaffat: 100"
+  },
+  {
+    "arabic": "رَبَّنَا لَا تَجْعَلْنَا فِتْنَةً لِّلْقَوْمِ الظَّالِمِينَ",
+    "translation": "Ya Tuhan kami, janganlah Engkau jadikan kami (sasaran) fitnah bagi kaum yang dzalim.",
+    "explanation": "Doa agar dijauhkan dari cobaan dan fitnah yang ditimpakan oleh orang-orang yang dzalim.",
+    "theme": "doa",
+    "type": "dua",
+    "source": "QS. Yunus: 85"
+  },
+  {
+    "arabic": "رَبَّنَا أَفْرِغْ عَلَيْنَا صَبْرًا وَثَبِّتْ أَقْدَامَنَا",
+    "translation": "Ya Tuhan kami, limpahkanlah kesabaran kepada kami dan teguhkanlah langkah kami.",
+    "explanation": "Doa memohon kesabaran dan keteguhan hati dalam menghadapi ujian dan perjuangan.",
+    "theme": "motivasi",
+    "type": "dua",
+    "source": "QS. Al-Baqarah: 250"
+  },
+  {
+    "arabic": "رَبَّنَا اغْفِرْ لَنَا ذُنُوبَنَا وَإِسْرَافَنَا فِي أَمْرِنَا وَثَبِّتْ أَقْدَامَنَا وَانصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ",
+    "translation": "Ya Tuhan kami, ampunilah dosa-dosa kami dan tindakan kami yang berlebih-lebihan dalam urusan kami, tetapkanlah langkah kaki kami, dan tolonglah kami terhadap kaum yang kafir.",
+    "explanation": "Doa komprehensif memohon ampunan, keteguhan, dan pertolongan dalam menghadapi musuh.",
+    "theme": "motivasi",
+    "type": "dua",
+    "source": "QS. Ali Imran: 147"
+  },
+  {
+    "arabic": "رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ الَّتِي أَنْعَمْتَ عَلَيَّ وَعَلَىٰ وَالِدَيَّ وَأَنْ أَعْمَلَ صَالِحًا تَرْضَاهُ",
+    "translation": "Ya Tuhanku, berilah aku ilham untuk tetap mensyukuri nikmat-Mu yang telah Engkau berikan kepadaku dan kepada kedua orang tuaku, dan agar aku selalu beramal shaleh yang Engkau ridhoi.",
+    "explanation": "Doa memohon keikhlasan dalam bersyukur dan kemampuan beramal shaleh yang diridhoi Allah.",
+    "theme": "akhlak",
+    "type": "dua",
+    "source": "QS. An-Naml: 19"
+  },
+  {
+    "arabic": "رَبَّنَا إِنَّنَا سَمِعْنَا مُنَادِيًا يُنَادِي لِلْإِيمَانِ أَنْ آمِنُوا بِرَبِّكُمْ فَآمَنَّا",
+    "translation": "Ya Tuhan kami, sesungguhnya kami mendengar (seruan) yang menyeru kepada iman: 'Berimanlah kamu kepada Tuhanmu,' maka kami pun beriman.",
+    "explanation": "Doa yang mencerminkan keikhlasan dalam menerima seruan iman dengan penuh keyakinan.",
+    "theme": "keimanan",
+    "type": "dua",
+    "source": "QS. Ali Imran: 193"
+  },
+  {
+    "arabic": "رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي وَاحْلُلْ عُقْدَةً مِّن لِّسَانِي يَفْقَهُوا قَوْلِي",
+    "translation": "Ya Tuhanku, lapangkanlah dadaku, mudahkanlah urusanku, dan lepaskanlah kekakuan dari lidahku, supaya mereka memahami perkataanku.",
+    "explanation": "Doa Nabi Musa memohon kelapangan hati, kemudahan urusan, dan kemampuan berkomunikasi dengan baik.",
+    "theme": "muhasabah",
+    "type": "dua",
+    "source": "QS. Thaha: 25-28"
+  },
+  {
+    "arabic": "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً",
+    "translation": "Ya Tuhan kami, janganlah Engkau condongkan hati kami kepada kesesatan setelah Engkau berikan petunjuk, dan anugerahkanlah kepada kami rahmat dari sisi-Mu.",
+    "explanation": "Doa memohon keteguhan hati di jalan petunjuk dan perlindungan dari kesesatan.",
+    "theme": "muhasabah",
+    "type": "dua",
+    "source": "QS. Ali Imran: 8"
+  },
+  {
+    "arabic": "رَبَّنَا آتِنَا مِن لَّدُنكَ رَحْمَةً وَهَيِّئْ لَنَا مِنْ أَمْرِنَا رَشَدًا",
+    "translation": "Ya Tuhan kami, berikanlah rahmat kepada kami dari sisi-Mu dan siapkanlah kemudahan yang lurus bagi kami dalam segala urusan kami.",
+    "explanation": "Doa memohon rahmat dan petunjuk ke jalan yang lurus dalam setiap urusan.",
+    "theme": "doa",
+    "type": "dua",
+    "source": "QS. Al-Kahfi: 10"
+  },
+  {
+    "arabic": "رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِن ذُرِّيَّتِي رَبَّنَا وَتَقَبَّلْ دُعْوَةِ",
+    "translation": "Ya Tuhanku, jadikanlah aku orang yang mendirikan shalat dan demikian pula anak cucuku. Ya Tuhan kami, perkenankanlah doaku.",
+    "explanation": "Doa Nabi Ibrahim agar keturunannya istiqomah dalam ibadah dan doanya dikabulkan Allah.",
+    "theme": "keluarga",
+    "type": "dua",
+    "source": "QS. Ibrahim: 40"
+  },
+  {
+    "arabic": "رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا",
+    "translation": "Ya Tuhan kami, anugerahkanlah kepada kami pasangan dan keturunan yang menjadi penyejuk mata, dan jadikanlah kami pemimpin bagi orang-orang yang bertakwa.",
+    "explanation": "Doa memohon keluarga yang sakinah dan menjadi teladan bagi yang bertakwa.",
+    "theme": "keluarga",
+    "type": "dua",
+    "source": "QS. Al-Furqan: 74"
   }
 ]
