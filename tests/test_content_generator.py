@@ -22,6 +22,31 @@ class TestGetTitle(unittest.TestCase):
         result = _get_title(verse)
         self.assertEqual(result, "HR. Muslim")
 
+    def test_hadith_with_kitab_prefix_no_double_hr(self):
+        """Sunan/Shahih/Musnad/Muwatha prefix should not get extra HR."""
+        verse = {"type": "hadith", "book": "Sunan At-Tirmidzi", "hadith_number": "1924"}
+        result = _get_title(verse)
+        self.assertEqual(result, "Sunan At-Tirmidzi No. 1924")
+        self.assertNotIn("HR. Sunan", result)
+
+    def test_hadith_strips_existing_hr_prefix(self):
+        """Backward compat: book with HR. prefix should not duplicate."""
+        verse = {"type": "hadith", "book": "HR. Muslim", "hadith_number": "32"}
+        result = _get_title(verse)
+        self.assertEqual(result, "HR. Muslim No. 32")
+        self.assertNotIn("HR. HR.", result)
+
+    def test_hadith_shahih_bukhari(self):
+        verse = {"type": "hadith", "book": "Shahih Bukhari", "hadith_number": "6014"}
+        result = _get_title(verse)
+        self.assertEqual(result, "Shahih Bukhari No. 6014")
+        self.assertNotIn("HR. Shahih", result)
+
+    def test_hadith_no_book_no_number(self):
+        verse = {"type": "hadith"}
+        result = _get_title(verse)
+        self.assertEqual(result, "HR.")
+
     def test_default_type(self):
         verse = {"surah": "Al-Baqarah", "ayat": "255"}
         result = _get_title(verse)

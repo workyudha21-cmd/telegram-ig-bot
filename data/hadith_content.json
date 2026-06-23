@@ -21,7 +21,7 @@
   },
   {
     "type": "hadith",
-    "book": "HR. Muslim",
+    "book": "Shahih Muslim",
     "hadith_number": "32",
     "narrator": "Abu Hurairah RA",
     "arabic": "الْإِيمَانُ بِضْعٌ وَسَبْعُونَ شُعْبَةً فَأَفْضَلُهَا قَوْلُ لَا إِلَهَ إِلَّا اللَّهُ وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ",
@@ -31,7 +31,7 @@
   },
   {
     "type": "hadith",
-    "book": "HR. Tirmidzi",
+    "book": "Sunan At-Tirmidzi",
     "hadith_number": "2516",
     "narrator": "Anas bin Malik RA",
     "arabic": "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
@@ -51,7 +51,7 @@
   },
   {
     "type": "hadith",
-    "book": "HR. Muslim",
+    "book": "Shahih Muslim",
     "hadith_number": "2698",
     "narrator": "Abu Hurairah RA",
     "arabic": "عَجَبًا لِأَمْرِ الْمُؤْمِنِ إِنَّ أَمْرَهُ كُلَّهُ خَيْرٌ وَلَيْسَ ذَاكَ لِأَحَدٍ إِلَّا لِلْمُؤْمِنِ",
@@ -81,7 +81,7 @@
   },
   {
     "type": "hadith",
-    "book": "HR. Abu Daud",
+    "book": "Sunan Abu Dawud",
     "hadith_number": "4907",
     "narrator": "Abu Darda RA",
     "arabic": "إِنَّ أَثْقَلَ مَا يُوضَعُ فِي الْمِيزَانِ يَوْمَ الْقِيَامَةِ حُسْنُ الْخُلُقِ",
@@ -121,7 +121,7 @@
   },
   {
     "type": "hadith",
-    "book": "HR. Tirmidzi",
+    "book": "Sunan At-Tirmidzi",
     "hadith_number": "1924",
     "narrator": "Anas bin Malik RA",
     "arabic": "مَا أَكْرَمَ شَابٌّ شَيْخًا لِسِنِّهِ إِلَّا قَيَّضَ اللَّهُ لَهُ مَنْ يُكْرِمُهُ عِنْدَ سِنِّهِ",
@@ -141,7 +141,7 @@
   },
   {
     "type": "hadith",
-    "book": "HR. Muslim",
+    "book": "Shahih Muslim",
     "hadith_number": "2564",
     "narrator": "Anas bin Malik RA",
     "arabic": "لَا تَبَاغَضُوا وَلَا تَحَاسَدُوا وَلَا تَدَابَرُوا وَكُونُوا عِبَادَ اللَّهِ إِخْوَانًا",
@@ -161,7 +161,7 @@
   },
   {
     "type": "hadith",
-    "book": "HR. Muslim",
+    "book": "Shahih Muslim",
     "hadith_number": "2682",
     "narrator": "Abu Hurairah RA",
     "arabic": "إِنَّ اللَّهَ عَزَّ وَجَلَّ يَقُولُ يَوْمَ الْقِيَامَةِ: أَيْنَ الْمُتَحَابُّونَ بِجَلَالِي الْيَوْمَ أُظِلُّهُمْ فِي ظِلِّي يَوْمَ لَا ظِلَّ إِلَّا ظِلِّي",
@@ -191,7 +191,7 @@
   },
   {
     "type": "hadith",
-    "book": "HR. Tirmidzi",
+    "book": "Sunan At-Tirmidzi",
     "hadith_number": "1987",
     "narrator": "Abu Hurairah RA",
     "arabic": "الْمُؤْمِنُ الْقَوِيُّ خَيْرٌ وَأَحَبُّ إِلَى اللَّهِ مِنَ الْمُؤْمِنِ الضَّعِيفِ وَفِي كُلٍّ خَيْرٌ",

@@ -251,7 +251,11 @@ def main():
         return
 
     content_gen = ContentGenerator(caption_style=CAPTION_STYLE)
-    image_gen = ImageGenerator(instagram_username=INSTAGRAM_USERNAME)
+    image_gen = ImageGenerator(
+        instagram_username=INSTAGRAM_USERNAME,
+        show_title=False,
+        show_arabic=False,
+    )
     ig_uploader = InstagramUploader(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD, INSTAGRAM_PROXY)
     atexit.register(ig_uploader.logout)
     trending_content_gen = None

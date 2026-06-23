@@ -89,10 +89,12 @@ def _get_arabic_reshaper():
 
 
 class ImageGenerator:
-    def __init__(self, width=1080, height=1080, instagram_username=""):
+    def __init__(self, width=1080, height=1080, instagram_username="", show_title=False, show_arabic=False):
         self.width = width
         self.height = height
         self.instagram_username = instagram_username.strip().lstrip("@")
+        self.show_title = show_title
+        self.show_arabic = show_arabic
         self._init_fonts()
 
     def _init_fonts(self):
@@ -161,9 +163,16 @@ class ImageGenerator:
     def _get_title(content):
         t = content.get("type", "quran")
         if t == "hadith":
-            book = content.get("book") or content.get("surah", "")
+            book = (content.get("book") or content.get("surah", "")).strip()
+            if book.lower().startswith("hr."):
+                book = book[3:].strip()
             number = content.get("hadith_number") or content.get("ayat", "")
-            return f"HR. {book} No. {number}" if number else f"HR. {book}"
+            book_lower = book.lower()
+            has_kitab_prefix = any(book_lower.startswith(p) for p in ("shahih ", "sunan ", "musnad ", "muwatha "))
+            prefix = "" if has_kitab_prefix else "HR. "
+            if number:
+                return f"{prefix}{book} No. {number}" if book else f"HR. No. {number}"
+            return f"{prefix}{book}" if book else "HR."
         if t in ("dua", "dzikir"):
             source = content.get("source") or content.get("surah", "")
             return source if source else "Dzikir"
@@ -282,7 +291,7 @@ class ImageGenerator:
 
         font_body = self._pick_body_font(translation, max_w)
 
-        title_h = self._text_height(title_text, self.font_title)
+        title_h = self._text_height(title_text, self.font_title) if self.show_title else 0
         footer_h = self._text_height(footer_text, self.font_footer)
 
         translation_lines = self._wrap_text(f'"{translation}"', font_body, max_w)
@@ -291,7 +300,7 @@ class ImageGenerator:
         arabic_lines = []
         arabic_h = 0
         arabic_font_used = None
-        if arabic_raw and self.font_arabic:
+        if self.show_arabic and arabic_raw and self.font_arabic:
             arabic_path = _find_font(_ARABIC_FONT_CANDIDATES, _ARABIC_FONT_URL, "NotoNaskhArabic-Regular.ttf")
             if arabic_path:
                 for size in [56, 48, 40, 36, 32, 28, 24]:
@@ -310,36 +319,47 @@ class ImageGenerator:
                     arabic_h = sum(self._arabic_line_height(line, arabic_font_used) for line in arabic_lines)
 
         gap = 50
-        total_h = title_h + gap + arabic_h + gap + translation_h + gap + footer_h
+        sections = []
+        if self.show_title:
+            sections.append(("title", title_h))
+        if self.show_arabic:
+            sections.append(("arabic", arabic_h))
+        sections.append(("translation", translation_h))
+        sections.append(("footer", footer_h))
+
+        total_h = sum(s[1] for s in sections) + gap * (len(sections) - 1)
         y = (self.height - total_h) // 2
         if y < margin:
             y = margin
 
-        self._draw_text_centered(draw, title_text, y, self.font_title, accent)
-        y += title_h + gap
+        for section_type, section_h in sections:
+            if section_type == "title":
+                self._draw_text_centered(draw, title_text, y, self.font_title, accent)
+                y += section_h + gap
+            elif section_type == "arabic":
+                for line in arabic_lines:
+                    bbox = draw.textbbox((0, 0), line, font=arabic_font_used)
+                    x = (self.width - (bbox[2] - bbox[0])) // 2
+                    draw.text((x, y), line, fill="#f8f9fa", font=arabic_font_used)
+                    y += self._arabic_line_height(line, arabic_font_used)
+                y += gap
+            elif section_type == "translation":
+                y = self._draw_multiline_centered(draw, translation_lines, y, font_body, "#f8f9fa")
+                y += gap
+            elif section_type == "footer":
+                footer_y = y
+                if footer_y + footer_h > self.height - margin:
+                    footer_y = self.height - margin - footer_h
+                self._draw_text_centered(draw, footer_text, footer_y, self.font_footer, accent, anchor="mt")
 
-        for line in arabic_lines:
-            bbox = draw.textbbox((0, 0), line, font=arabic_font_used)
-            x = (self.width - (bbox[2] - bbox[0])) // 2
-            draw.text((x, y), line, fill="#f8f9fa", font=arabic_font_used)
-            y += self._arabic_line_height(line, arabic_font_used)
         self._last_arabic_lines = list(arabic_lines)
-        self._last_arabic_raw = arabic_raw
-        y += gap
-
-        y = self._draw_multiline_centered(draw, translation_lines, y, font_body, "#f8f9fa")
-        y += gap
-
-        footer_y = y
-        if footer_y + footer_h > self.height - margin:
-            footer_y = self.height - margin - footer_h
-        self._draw_text_centered(draw, footer_text, footer_y, self.font_footer, accent, anchor="mt")
+        self._last_arabic_raw = arabic_raw if self.show_arabic else ""
 
     def _layout_arabic_hero(self, draw, content, title_text, footer_text, margin, max_w, accent):
         arabic_raw = content.get("arabic", "")
         translation = content.get("translation", "")
 
-        if not arabic_raw or not self.font_arabic:
+        if not self.show_arabic or not arabic_raw or not self.font_arabic:
             return self._layout_classic(draw, content, title_text, footer_text, margin, max_w, accent)
 
         arabic_path = _find_font(_ARABIC_FONT_CANDIDATES, _ARABIC_FONT_URL, "NotoNaskhArabic-Regular.ttf")
@@ -350,7 +370,7 @@ class ImageGenerator:
         trans_lines = self._wrap_text(f'"{translation}"', font_body, max_w)
         trans_total = sum(self._line_height(line, font_body) for line in trans_lines)
 
-        title_h = self._text_height(title_text, self.font_title)
+        title_h = self._text_height(title_text, self.font_title) if self.show_title else 0
         footer_h = self._text_height(footer_text, self.font_footer)
         gap = 50
 
@@ -377,8 +397,9 @@ class ImageGenerator:
         if y < margin:
             y = margin
 
-        self._draw_text_centered(draw, title_text, y, self.font_title, accent)
-        y += title_h + gap
+        if self.show_title:
+            self._draw_text_centered(draw, title_text, y, self.font_title, accent)
+            y += title_h + gap
 
         for line in arabic_lines:
             bbox = draw.textbbox((0, 0), line, font=font_try)
@@ -405,7 +426,7 @@ class ImageGenerator:
         trans_lines = self._wrap_text(f'"{translation}"', font_body, max_w)
         trans_h = sum(self._line_height(line, font_body) for line in trans_lines)
 
-        title_h = self._text_height(title_text, self.font_title)
+        title_h = self._text_height(title_text, self.font_title) if self.show_title else 0
         footer_h = self._text_height(footer_text, self.font_footer)
         gap = 50
 
@@ -414,8 +435,9 @@ class ImageGenerator:
         if y < margin:
             y = margin
 
-        self._draw_text_centered(draw, title_text, y, self.font_title, accent)
-        y += title_h + gap
+        if self.show_title:
+            self._draw_text_centered(draw, title_text, y, self.font_title, accent)
+            y += title_h + gap
 
         y = self._draw_multiline_centered(draw, trans_lines, y, font_body, "#f8f9fa")
         y += gap
@@ -426,7 +448,7 @@ class ImageGenerator:
         self._draw_text_centered(draw, footer_text, footer_y, self.font_footer, accent, anchor="mt")
 
         self._last_arabic_lines = []
-        self._last_arabic_raw = content.get("arabic", "")
+        self._last_arabic_raw = content.get("arabic", "") if self.show_arabic else ""
 
     def generate_carousel(self, content, prefix="carousel"):
         paths = []
@@ -443,44 +465,62 @@ class ImageGenerator:
             if slide_idx == 1:
                 self._draw_text_centered(draw, slide_label, 60, self.font_small, accent, anchor="mt")
                 self._draw_text_centered(draw, "Tadabbur", 240, self.font_title, accent, anchor="mt")
-                title = self._get_title(content)
-                title_lines = self._wrap_text(title, self.font_title, self.width - 2 * margin)
-                y = 360
-                for line in title_lines:
-                    self._draw_text_centered(draw, line, y, self.font_title, "#f8f9fa", anchor="mt")
-                    y += self._line_height(line, self.font_title)
-                self._draw_text_centered(draw, "Swipe untuk membaca", self.height - 130, self.font_footer, accent, anchor="mt")
+                if self.show_title:
+                    title = self._get_title(content)
+                    title_lines = self._wrap_text(title, self.font_title, self.width - 2 * margin)
+                    y = 360
+                    for line in title_lines:
+                        self._draw_text_centered(draw, line, y, self.font_title, "#f8f9fa", anchor="mt")
+                        y += self._line_height(line, self.font_title)
+                self._draw_text_centered(draw, "Swipe untuk membaca", self.height - 200, self.font_footer, accent, anchor="mt")
 
             elif slide_idx == 2:
                 self._draw_text_centered(draw, slide_label, 60, self.font_small, accent, anchor="mt")
-                title = self._get_title(content)
-                self._draw_text_centered(draw, title, 130, self.font_title, accent, anchor="mt")
+                if self.show_title:
+                    title = self._get_title(content)
+                    self._draw_text_centered(draw, title, 130, self.font_title, accent, anchor="mt")
+                    y = 230
+                else:
+                    self._draw_text_centered(draw, "Ayat:", 130, self.font_title, accent, anchor="mt")
+                    y = 230
 
                 arabic_raw = content.get("arabic", "")
-                if arabic_raw and self.font_arabic:
+                if self.show_arabic and arabic_raw and self.font_arabic:
                     arabic_path = _find_font(_ARABIC_FONT_CANDIDATES, _ARABIC_FONT_URL, "NotoNaskhArabic-Regular.ttf")
                     if arabic_path:
                         for size in [56, 48, 40, 36, 32, 28, 24]:
                             font_try = ImageFont.truetype(arabic_path, size)
                             wrapped = self._wrap_arabic(arabic_raw, font_try, self.width - 2 * margin)
                             total_ar = sum(self._arabic_line_height(line, font_try) for line in wrapped)
-                            avail = self.height - 230 - 130
+                            avail = self.height - y - 130
                             if total_ar <= avail:
                                 break
-                        y = 230
                         for line in wrapped:
                             bbox = draw.textbbox((0, 0), line, font=font_try)
                             x = (self.width - (bbox[2] - bbox[0])) // 2
                             draw.text((x, y), line, fill="#f8f9fa", font=font_try)
                             y += self._arabic_line_height(line, font_try)
+                else:
+                    translation = content.get("translation", "")
+                    max_w = self.width - 2 * margin
+                    font_body = self._pick_body_font(translation, max_w, max_height_ratio=0.45)
+                    trans_lines = self._wrap_text(f'"{translation}"', font_body, max_w)
+                    avail = self.height - y - 130
+                    while len(trans_lines) > 1 and sum(self._line_height(l, font_body) for l in trans_lines) > avail:
+                        font_body = ImageFont.truetype(_find_font(_LATIN_FONT_CANDIDATES, _LATIN_FONT_URL, "NotoSans-Regular.ttf"), font_body.size - 2) if font_body.size > 24 else font_body
+                        trans_lines = self._wrap_text(f'"{translation}"', font_body, max_w)
+                    self._draw_multiline_centered(draw, trans_lines, y, font_body, "#f8f9fa")
 
             else:
                 self._draw_text_centered(draw, slide_label, 60, self.font_small, accent, anchor="mt")
-                self._draw_text_centered(draw, "Artinya:", 150, self.font_title, accent, anchor="mt")
-                translation = content.get("translation", "")
+                if self.show_arabic:
+                    self._draw_text_centered(draw, "Artinya:", 150, self.font_title, accent, anchor="mt")
+                else:
+                    self._draw_text_centered(draw, "Renungan:", 150, self.font_title, accent, anchor="mt")
+                body_text = content.get("translation", "") if self.show_arabic else (content.get("explanation") or content.get("tafsir", "") or content.get("translation", ""))
                 max_w = self.width - 2 * margin
-                font_body = self._pick_body_font(translation, max_w, max_height_ratio=0.55)
-                trans_lines = self._wrap_text(f'"{translation}"', font_body, max_w)
+                font_body = self._pick_body_font(body_text, max_w, max_height_ratio=0.55)
+                trans_lines = self._wrap_text(f'"{body_text}"', font_body, max_w)
                 trans_h = sum(self._line_height(line, font_body) for line in trans_lines)
                 y = (self.height - trans_h) // 2 - 40
                 self._draw_multiline_centered(draw, trans_lines, y, font_body, "#f8f9fa")
@@ -511,7 +551,7 @@ class ImageGenerator:
         footer_text = f"@{self.instagram_username}" if self.instagram_username else "@tadabbur.quran"
         max_w = story_w - 120
 
-        title_h = self._text_height(title_text, self.font_title)
+        title_h = self._text_height(title_text, self.font_title) if self.show_title else 0
         footer_h = self._text_height(footer_text, self.font_footer)
         margin = 100
 
@@ -522,7 +562,7 @@ class ImageGenerator:
         arabic_lines = []
         arabic_h = 0
         arabic_font_used = None
-        if arabic_raw and self.font_arabic:
+        if self.show_arabic and arabic_raw and self.font_arabic:
             arabic_path = _find_font(_ARABIC_FONT_CANDIDATES, _ARABIC_FONT_URL, "NotoNaskhArabic-Regular.ttf")
             if arabic_path:
                 for size in [80, 72, 64, 56, 48, 40, 36, 32, 28]:
@@ -546,8 +586,9 @@ class ImageGenerator:
         if y < margin:
             y = margin
 
-        self._draw_text_centered(draw, title_text, y, self.font_title, accent, anchor="mt")
-        y += title_h + gap
+        if self.show_title:
+            self._draw_text_centered(draw, title_text, y, self.font_title, accent, anchor="mt")
+            y += title_h + gap
 
         for line in arabic_lines:
             bbox = draw.textbbox((0, 0), line, font=arabic_font_used)
@@ -559,6 +600,9 @@ class ImageGenerator:
         self._draw_multiline_centered(draw, trans_lines, y, font_story_body, "#f8f9fa", line_gap=20)
         footer_y = story_h - 100
         self._draw_text_centered(draw, footer_text, footer_y, self.font_footer, accent, anchor="mt")
+
+        self._last_arabic_lines = list(arabic_lines)
+        self._last_arabic_raw = arabic_raw if self.show_arabic else ""
 
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         path = os.path.join(OUTPUT_DIR, output_filename)

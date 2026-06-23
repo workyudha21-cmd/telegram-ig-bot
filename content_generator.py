@@ -73,9 +73,16 @@ _HASHTAG_ENGAGEMENT = "#share #save #komen"
 def _get_title(verse: Dict[str, Any]) -> str:
     t = verse.get("type", "quran")
     if t == "hadith":
-        book = verse.get("book", "")
+        book = (verse.get("book", "") or "").strip()
+        if book.lower().startswith("hr."):
+            book = book[3:].strip()
         number = verse.get("hadith_number", "")
-        return f"HR. {book} No. {number}" if number else f"HR. {book}"
+        book_lower = book.lower()
+        has_kitab_prefix = any(book_lower.startswith(p) for p in ("shahih ", "sunan ", "musnad ", "muwatha "))
+        prefix = "" if has_kitab_prefix else "HR. "
+        if number:
+            return f"{prefix}{book} No. {number}" if book else f"HR. No. {number}"
+        return f"{prefix}{book}" if book else "HR."
     if t in ("dua", "dzikir"):
         return verse.get("source", "Dzikir")
     surah = verse.get("surah", "")
