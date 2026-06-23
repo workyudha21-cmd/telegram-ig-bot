@@ -398,5 +398,255 @@
     "translation": "Barangsiapa berdiri (shalat malam) di bulan Ramadhan karena iman dan mengharap pahala, maka akan diampuni dosa-dosanya yang telah lalu.",
     "explanation": "Shalat tarawih di bulan Ramadhan dengan iman dan ikhlas adalah sebab diampuni dosa. Inilah kesempatan emas yang harus dimanfaatkan di bulan Ramadhan.",
     "theme": "keimanan"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "1",
+    "narrator": "Umar bin Khattab RA",
+    "arabic": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى",
+    "translation": "Sesungguhnya setiap amal tergantung pada niatnya, dan sesungguhnya setiap orang akan mendapatkan apa yang ia niatkan.",
+    "explanation": "Hadits paling agung tentang niat. Amal tanpa niat sia-sia, niat tanpa amal kosong. Ikhlas adalah ruh dari setiap ibadah.",
+    "theme": "muhasabah"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "2750",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ",
+    "translation": "Barangsiapa menempuh jalan untuk menuntut ilmu, maka Allah akan mudahkan baginya jalan menuju surga.",
+    "explanation": "Menuntut ilmu adalah jalan menuju surga. Setiap langkah untuk belajar, baik formal maupun nonformal, akan dibalas dengan petunjuk Allah.",
+    "theme": "motivasi"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "3203",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+    "translation": "Barangsiapa beriman kepada Allah dan hari akhir, hendaklah ia berkata baik atau diam.",
+    "explanation": "Menjaga lisan adalah cermin keimanan. Diam dari hal yang tidak bermanfaat lebih baik daripada berbicara yang menyakiti.",
+    "theme": "akhlak"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "6502",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ ثَقِيلَتَانِ فِي الْمِيزَانِ حَبِيبَتَانِ إِلَى الرَّحْمَٰنِ سُبْحَانَ اللَّهِ وَبِحَمْدِهِ سُبْحَانَ اللَّهِ الْعَظِيمِ",
+    "translation": "Dua kalimat yang ringan di lisan, tetapi berat di timbangan, dan dicintai oleh Ar-Rahman: Subhanallah wabihamdihi, Subhanallahil 'Adzhim.",
+    "explanation": "Dzikir ringan yang sangat berat pahalanya. Subhanallah wabihamdihi Subhanallahil 'Adzhim menjadi sebab ampunan dosa meskipun sebanyak buih di lautan.",
+    "theme": "dzikir"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "2699",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "مَنْ قَالَ لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ فِي يَوْمٍ مِائَةَ مَرَّةٍ كَانَتْ لَهُ عَدْلَ عَشْرِ رِقَابٍ",
+    "translation": "Barangsiapa membaca 'La ilaha illallah wahdahu la syarika lah' sebanyak 100 kali sehari, maka baginya pahala seperti memerdekakan 10 budak.",
+    "explanation": "Tahlil 100 kali sehari senilai memerdekakan 10 budak. Tambahan 400 kebaikan, 400 kejelekan dihapus, dan dijaga dari setan sepanjang hari.",
+    "theme": "dzikir"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "5023",
+    "narrator": "Anas bin Malik RA",
+    "arabic": "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
+    "translation": "Tidak sempurna iman salah seorang di antara kalian, hingga ia mencintai untuk saudaranya apa yang ia cintai untuk dirinya sendiri.",
+    "explanation": "Cinta kepada sesama adalah bagian dari iman. Kita harus berharap kebaikan untuk orang lain seperti yang kita harap untuk diri sendiri.",
+    "theme": "akhlak"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "6014",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+    "translation": "Barangsiapa beriman kepada Allah dan hari akhir, hendaklah ia berkata baik atau diam.",
+    "explanation": "Dua pilihan bagi orang beriman: berkata baik atau diam. Berkata yang menyakiti adalah tanda lemahnya keimanan.",
+    "theme": "akhlak"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "2547",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "خَيْرُكُمْ خَيْرُكُمْ لِأَهْلِهِ وَأَنَا خَيْرُكُمْ لِأَهْلِي",
+    "translation": "Sebaik-baik kalian adalah yang terbaik kepada keluarganya, dan aku adalah orang yang paling baik di antara kalian kepada keluarganya.",
+    "explanation": "Akhlak yang baik diuji dari bagaimana kita memperlakukan keluarga sendiri. Nabi shallallahu 'alaihi wa sallam menjadi teladan dalam lemah lembut kepada keluarga.",
+    "theme": "keluarga"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "3334",
+    "narrator": "Abdullah bin Umar RA",
+    "arabic": "كُلُّكُمْ رَاعٍ وَكُلُّكُمْ مَسْئُولٌ عَنْ رَعِيَّتِهِ",
+    "translation": "Setiap kalian adalah pemimpin, dan setiap kalian akan ditanya tentang yang dipimpinnya.",
+    "explanation": "Tanggung jawab kepemimpinan berlaku di semua level: kepala keluarga, pemimpin masyarakat, hingga penguasa. Kesadaran ini mendorong setiap orang untuk menjalankan amanah dengan baik.",
+    "theme": "keluarga"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "5673",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "مَنْ لَمْ يَرْحَمْ صَغِيرَنَا وَيَغْرِفْ كَبِيرَنَا فَلَيْسَ مِنَّا",
+    "translation": "Barangsiapa tidak menyayangi yang muda di antara kita dan tidak menghargai yang tua, maka bukan termasuk golongan kami.",
+    "explanation": "Sikap hormat kepada yang tua dan sayang kepada yang muda adalah ciri umat Nabi Muhammad. Kelembutan dan kasih sayang harus tercermin dalam pergaulan sehari-hari.",
+    "theme": "akhlak"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "6404",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "إِذَا مَاتَ ابْنُ آدَمَ انْقَطَعَ عَمَلُهُ إِلَّا مِنْ ثَلَاثٍ: صَدَقَةٍ جَارِيَةٍ أَوْ عِلْمٍ يُنْتَفَعُ بِهِ أَوْ وَلَدٍ صَالِحٍ يَدْعُو لَهُ",
+    "translation": "Apabila anak Adam meninggal, terputuslah amalnya kecuali tiga: sedekah jariyah, ilmu yang bermanfaat, atau anak shaleh yang mendoakannya.",
+    "explanation": "Tiga amalan yang pahalanya terus mengalir meskipun seseorang telah meninggal. Ini motivasi untuk berinvestasi pada ilmu, sedekah, dan mendidik generasi yang shaleh.",
+    "theme": "motivasi"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "747",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "مَنْ صَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ",
+    "translation": "Barangsiapa berpuasa Ramadhan karena iman dan mengharap pahala dari Allah, maka akan diampuni dosa-dosanya yang telah lalu.",
+    "explanation": "Puasa Ramadhan dengan iman dan ikhlas menjadi sebab diampuni seluruh dosa. Itulah keistimewaan Ramadhan yang harus dimaksimalkan dengan amal shaleh lainnya.",
+    "theme": "keimanan"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "223",
+    "narrator": "Ibn Umar RA",
+    "arabic": "بُنِيَ الْإِسْلَامُ عَلَى خَمْسٍ شَهَادَةِ أَنْ لَا إِلَٰهَ إِلَّا اللَّهُ وَأَنَّ مُحَمَّدًا رَسُولُ اللَّهِ وَإِقَامِ الصَّلَاةِ وَإِيتَاءِ الزَّكَاةِ وَحَجِّ الْبَيْتِ وَصَوْمِ رَمَضَانَ",
+    "translation": "Islam dibangun di atas lima perkara: bersaksi bahwa tidak ada tuhan selain Allah dan Muhammad adalah utusan Allah, mendirikan shalat, menunaikan zakat, naik haji, dan berpuasa Ramadhan.",
+    "explanation": "Lima rukun Islam yang menjadi fondasi keimanan dan ketakwaan. Mendirikannya dengan sempurna adalah bekal utama di hari kiamat.",
+    "theme": "keimanan"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "1987",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "الْمُؤْمِنُ الْقَوِيُّ خَيْرٌ وَأَحَبُّ إِلَى اللَّهِ مِنَ الْمُؤْمِنِ الضَّعِيفِ وَفِي كُلٍّ خَيْرٌ",
+    "translation": "Mukmin yang kuat lebih baik dan lebih dicintai Allah daripada mukmin yang lemah, dan pada masing-masing ada kebaikan.",
+    "explanation": "Islam mendorong umatnya untuk menjadi pribadi yang tangguh, baik secara fisik, mental, maupun spiritual. Bukan berarti yang lemah tidak baik, tetapi yang kuat lebih utama.",
+    "theme": "motivasi"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "1153",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "عَجَبًا لِأَمْرِ الْمُؤْمِنِ إِنَّ أَمْرَهُ كُلَّهُ خَيْرٌ وَذَلِكَ لَيْسَ لِأَحَدٍ إِلَّا لِلْمُؤْمِنِ",
+    "translation": "Sungguh mengagumkan urusan orang mukmin, sesungguhnya seluruh urusannya adalah baik. Ini tidak dimiliki siapapun kecuali orang mukmin.",
+    "explanation": "Optimisme seorang mukmin: semua yang terjadi adalah baik. Kebahagiaan adalah kesempatan bersyukur, musibah adalah kesempatan bersabar. Keduanya berpahala.",
+    "theme": "muhasabah"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "6853",
+    "narrator": "Sa'ad bin Abi Waqqash RA",
+    "arabic": "مَا مِنْ مُسْلِمٍ يَدْعُو بِدَعْوَةٍ لَيْسَ فِيهَا إِثْمٌ وَلَا قَطِيعَةُ رَحِمٍ إِلَّا أَعْطَاهُ اللَّهُ بِهَا إِحْدَى ثَلَاثٍ",
+    "translation": "Tidaklah seorang muslim berdoa dengan doa yang tidak mengandung dosa atau pemutusan hubungan kekeluargaan, melainkan Allah akan memberikan kepadanya salah satu dari tiga hal.",
+    "explanation": "Setiap doa yang baik akan dikabulkan Allah dengan salah satu dari tiga: segera dikabulkan, ditunda untuk akhirat, atau diganti dengan perlindungan dari musibah.",
+    "theme": "doa"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "2067",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ وَيُنْسَأَ لَهُ فِي أَثَرِهِ فَلْيَصِلْ رَحِمَهُ",
+    "translation": "Barangsiapa ingin dilapangkan rezekinya dan dipanjangkan umurnya, maka hendaklah ia menyambung tali silaturahim.",
+    "explanation": "Silaturahim bukan hanya soal hubungan baik, tapi juga pintu keberkahan rezeki dan umur. Ini janji Nabi yang bisa kita buktikan sendiri.",
+    "theme": "keluarga"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "5990",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "إِنَّ اللَّهَ لَا يَنْظُرُ إِلَى صُوَرِكُمْ وَأَمْوَالِكُمْ وَلَٰكِنْ يَنْظُرُ إِلَى قُلُوبِكُمْ وَأَعْمَالِكُمْ",
+    "translation": "Sesungguhnya Allah tidak melihat kepada rupa kalian dan harta kalian, tetapi Allah melihat kepada hati kalian dan amal kalian.",
+    "explanation": "Penampilan dan harta tidak menjamin kemuliaan di sisi Allah. Yang dilihat adalah kebersihan hati dan kualitas amal. Intropeksi diri adalah kunci.",
+    "theme": "muhasabah"
+  },
+  {
+    "type": "hadith",
+    "book": "Sunan At-Tirmidzi",
+    "hadith_number": "2003",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ سُبْحَانَ اللَّهِ الْعَظِيمِ",
+    "translation": "Maha Suci Allah dan segala puji bagi-Nya, Maha Suci Allah Yang Maha Agung.",
+    "explanation": "Dua kalimat ringan di lisan, berat di timbangan, dan dicintai Ar-Rahman. Dianjurkan dibaca pagi dan petang sebanyak 100 kali.",
+    "theme": "dzikir"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "2584",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+    "translation": "Perkataan yang baik adalah sedekah.",
+    "explanation": "Tersenyum, berkata baik, dan memberi nasihat yang lembut adalah sedekah. Setiap kebaikan sekecil apa pun akan dibalas oleh Allah.",
+    "theme": "akhlak"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "18",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى أَكُونَ أَحَبَّ إِلَيْهِ مِنْ وَالِدِهِ وَوَلَدِهِ وَالنَّاسِ أَجْمَعِينَ",
+    "translation": "Tidak sempurna iman salah seorang di antara kalian hingga aku (Rasulullah) lebih dicintainya daripada orang tuanya, anaknya, dan seluruh manusia.",
+    "explanation": "Kecintaan kepada Rasulullah adalah syarat kesempurnaan iman. Cinta ini dibuktikan dengan mengikuti sunnahnya dan mendahulukan ajarannya di atas segalanya.",
+    "theme": "keimanan"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "2682",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "إِنَّ اللَّهَ عَزَّ وَجَلَّ يَقُولُ يَوْمَ الْقِيَامَةِ: أَيْنَ الْمُتَحَابُّونَ بِجَلَالِي",
+    "translation": "Allah berfirman di hari kiamat: Di manakah orang-orang yang saling mencintai karena keagungan-Ku?",
+    "explanation": "Persahabatan dan cinta karena Allah adalah investasi terbesar. Di hari yang paling menakutkan, mereka akan mendapatkan naungan langsung dari Allah.",
+    "theme": "keimanan"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "6364",
+    "narrator": "Abu Hurairah RA",
+    "arabic": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيُكْرِمْ ضَيْفَهُ",
+    "translation": "Barangsiapa beriman kepada Allah dan hari akhir, hendaklah ia memuliakan tamunya.",
+    "explanation": "Memuliakan tamu adalah bagian dari akhlak mulia dalam Islam. Bukan sekadar menerima, tetapi memberi penghormatan dan pelayanan terbaik.",
+    "theme": "akhlak"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Muslim",
+    "hadith_number": "1834",
+    "narrator": "Anas bin Malik RA",
+    "arabic": "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ مِنَ الْخَيْرِ",
+    "translation": "Tidak sempurna iman seseorang di antara kalian hingga ia mencintai untuk saudaranya kebaikan yang ia cintai untuk dirinya sendiri.",
+    "explanation": "Iman bukan hanya soal ibadah ritual, tetapi juga bagaimana kita memperlakukan sesama. Sikap tulus berharap kebaikan untuk orang lain adalah ukuran iman yang hakiki.",
+    "theme": "akhlak"
+  },
+  {
+    "type": "hadith",
+    "book": "Shahih Bukhari",
+    "hadith_number": "5023",
+    "narrator": "Anas bin Malik RA",
+    "arabic": "لَا تَبَاغَضُوا وَلَا تَحَاسَدُوا وَلَا تَدَابَرُوا وَكُونُوا عِبَادَ اللَّهِ إِخْوَانًا",
+    "translation": "Janganlah kalian saling membenci, saling dengki, dan saling membelakangi. Jadilah hamba-hamba Allah yang bersaudara.",
+    "explanation": "Umat Islam adalah bersaudara. Dengki, benci, dan permusuhan adalah racun yang merusak ukhuwah. Mari kita jaga tali persaudaraan.",
+    "theme": "akhlak"
   }
 ]
